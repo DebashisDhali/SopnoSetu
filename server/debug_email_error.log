@@ -1,0 +1,4 @@
+{
+  "stack": "ReferenceError: sendEmail is not defined\n    at forgotPassword (D:\\A_W\\SopnoSetu\\server\\controllers\\authController.js:204:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)",
+  "message": "sendEmail is not defined"
+}

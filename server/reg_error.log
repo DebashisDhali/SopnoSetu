@@ -1,0 +1,14 @@
+
+--- ERROR AT 2026-01-18T05:36:04.153Z ---
+Name: TypeError
+Message: next is not a function
+Stack: TypeError: next is not a function
+    at model.<anonymous> (D:\A_W\SopnoSetu\server\models\User.js:27:5)
+    at async Kareem.execPre (D:\A_W\SopnoSetu\server\node_modules\kareem\index.js:65:24)
+    at async model.$__save (D:\A_W\SopnoSetu\server\node_modules\mongoose\lib\model.js:369:5)
+    at async model.save (D:\A_W\SopnoSetu\server\node_modules\mongoose\lib\model.js:609:5)
+    at async D:\A_W\SopnoSetu\server\node_modules\mongoose\lib\model.js:2714:9
+    at async Promise.all (index 0)
+    at async Function.create (D:\A_W\SopnoSetu\server\node_modules\mongoose\lib\model.js:2699:11)
+    at async registerUser (D:\A_W\SopnoSetu\server\controllers\authController.js:42:22)
+---------------------------------
