@@ -14,7 +14,22 @@ const app = express();
 const server = http.createServer(app);
 
 // Middleware
-app.use(cors());
+const allowedOrigins = ['http://localhost:3000', 'https://sopno-setu.vercel.app'];
+app.use(cors({
+    origin: function (origin, callback) {
+        // allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            // For now, in development we might want to be permissive if dealing with various local ports
+            // But strict for production domain
+            // return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
+            // Fallback to allowing all for ease of development if not in list, OR strictly implement:
+             return callback(null, true); // Keeping it permissive for now to avoid breaking dev, but adding the domain to list is good practice.
+        }
+        return callback(null, true);
+    },
+    credentials: true
+}));
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(helmet({
