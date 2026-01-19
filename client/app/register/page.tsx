@@ -77,20 +77,20 @@ function RegisterForm() {
     };
 
     return (
-        <Card className="w-full max-w-2xl shadow-2xl border-0 bg-white/80 backdrop-blur-md relative overflow-hidden">
+        <Card className="w-full max-w-2xl shadow-2xl border-0 bg-white/80 backdrop-blur-md relative overflow-hidden flex flex-col max-h-[95vh] md:max-h-none">
             {/* Top decorative gradient bar */}
             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500" />
 
-            <CardHeader className="space-y-2 pb-8">
-                <CardTitle className="text-3xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">
+            <CardHeader className="space-y-2 pb-4 md:pb-8 shrink-0">
+                <CardTitle className="text-2xl md:text-3xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">
                     Create an Account
                 </CardTitle>
-                <CardDescription className="text-center text-slate-500 font-medium">
+                <CardDescription className="text-center text-slate-500 font-medium text-xs md:text-sm">
                     Join SopnoSetu as a <span className="text-emerald-600 font-bold">{formData.role === 'mentor' ? 'Mentor' : formData.title}</span>
                 </CardDescription>
             </CardHeader>
 
-            <CardContent>
+            <CardContent className="overflow-y-auto pb-4 px-4 md:px-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {error && (
                         <div className="p-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl text-center font-medium animate-in fade-in slide-in-from-top-2">
@@ -114,7 +114,7 @@ function RegisterForm() {
                                     setFormData({ ...formData, role: 'candidate', title: val });
                                 }
                             }}
-                            className="flex h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                            className="flex h-11 md:h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
                         >
                             <optgroup label="Student/Guardian">
                                 <option value="Admission Candidate">Admission Candidate</option>
@@ -217,17 +217,19 @@ function RegisterForm() {
                         )}
                     </div>
 
-                    <Button
-                        type="submit"
-                        className="w-full h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-200 transition-all hover:scale-[1.01] active:scale-[0.99]"
-                        disabled={loading || (formData.role === 'mentor' && !formData.studentIdUrl)}
-                    >
-                        {loading ? <Loader2 className="mr-2 h-5 w-4 animate-spin" /> : 'Create My Account'}
-                    </Button>
+                    <div className="pt-4 sticky bottom-0 bg-white/80 backdrop-blur-sm md:static md:bg-transparent md:pt-0">
+                        <Button
+                            type="submit"
+                            className="w-full h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-200 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                            disabled={loading || (formData.role === 'mentor' && !formData.studentIdUrl)}
+                        >
+                            {loading ? <Loader2 className="mr-2 h-5 w-4 animate-spin" /> : 'Create My Account'}
+                        </Button>
+                    </div>
                 </form>
             </CardContent>
 
-            <CardFooter className="flex flex-col space-y-4 pb-8">
+            <CardFooter className="flex flex-col space-y-4 pb-6 pt-2 shrink-0 border-t border-slate-100/50">
                 <div className="w-full h-px bg-slate-100 relative">
                     <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
                         OR
