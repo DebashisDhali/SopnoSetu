@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/services/api';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Loader2, Upload, Check } from 'lucide-react';
+import { Loader2, Upload, Check, GraduationCap, ArrowRight, Quote } from 'lucide-react';
 import { toast } from 'sonner';
 import { FileUpload } from '@/components/ui/file-upload';
+import { motion } from 'framer-motion';
 
 function RegisterForm() {
     const router = useRouter();
@@ -77,178 +77,202 @@ function RegisterForm() {
     };
 
     return (
-        <Card className="w-full max-w-2xl shadow-2xl border-0 bg-white/80 backdrop-blur-md relative overflow-hidden flex flex-col max-h-[95vh] md:max-h-none">
-            {/* Top decorative gradient bar */}
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500" />
+        <div className="flex min-h-screen bg-white">
+            {/* Left Side - Branding & Testimonial (Hidden on mobile) */}
+            <div className="hidden lg:flex lg:w-1/2 relative bg-slate-900 text-white flex-col justify-between p-12 overflow-hidden">
+                <div className="absolute inset-0 z-0">
+                    <img
+                        src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop"
+                        alt="University Campus"
+                        className="w-full h-full object-cover opacity-20"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand-900/90 to-slate-900/90" />
+                </div>
 
-            <CardHeader className="space-y-2 pb-4 md:pb-8 shrink-0">
-                <CardTitle className="text-2xl md:text-3xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">
-                    Create an Account
-                </CardTitle>
-                <CardDescription className="text-center text-slate-500 font-medium text-xs md:text-sm">
-                    Join SopnoSetu as a <span className="text-emerald-600 font-bold">{formData.role === 'mentor' ? 'Mentor' : formData.title}</span>
-                </CardDescription>
-            </CardHeader>
+                <div className="relative z-10">
+                    <Link href="/" className="inline-flex items-center gap-2 text-2xl font-bold font-serif mb-8">
+                        <GraduationCap className="h-8 w-8 text-brand-400" />
+                        <span>SopnoSetu</span>
+                    </Link>
+                    <h2 className="text-4xl font-extrabold leading-tight mb-4">
+                        Begin Your Journey to <br />
+                        <span className="text-brand-400">Academic Excellence.</span>
+                    </h2>
+                    <p className="text-slate-300 text-lg max-w-md">
+                        Join thousands of students and mentors connecting daily to shape the future of Bangladesh.
+                    </p>
+                </div>
 
-            <CardContent className="overflow-y-auto pb-4 px-4 md:px-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {error && (
-                        <div className="p-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl text-center font-medium animate-in fade-in slide-in-from-top-2">
-                            {error}
+                <div className="relative z-10 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10">
+                    <Quote className="h-8 w-8 text-brand-400 mb-4 opacity-50" />
+                    <p className="text-lg font-medium italic mb-4 leading-relaxed">
+                        "Finding a mentor from BUET through SopnoSetu was the turning point in my preparation. Their guidance was invaluable."
+                    </p>
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-brand-500 flex items-center justify-center font-bold text-white">S</div>
+                        <div>
+                            <div className="font-bold text-white">Sakib Ahmed</div>
+                            <div className="text-xs text-brand-200">CSE, BUET (Batch '23)</div>
                         </div>
-                    )}
+                    </div>
+                </div>
+            </div>
 
-                    {/* User Type Selection */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                            I am a <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                            name="userTypeSelector"
-                            value={formData.role === 'mentor' ? 'mentor' : formData.title || 'Admission Candidate'}
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                if (val === 'mentor') {
-                                    setFormData({ ...formData, role: 'mentor', title: 'Mentor' });
-                                } else {
-                                    setFormData({ ...formData, role: 'candidate', title: val });
-                                }
-                            }}
-                            className="flex h-11 md:h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-                        >
-                            <optgroup label="Student/Guardian">
-                                <option value="Admission Candidate">Admission Candidate</option>
-                                <option value="HSC Student">HSC Student</option>
-                                <option value="Parent">Parent/Guardian</option>
-                            </optgroup>
-                            <optgroup label="Mentor">
-                                <option value="mentor">University Senior (Mentor)</option>
-                            </optgroup>
-                        </select>
+            {/* Right Side - Form */}
+            <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 py-12 bg-slate-50 lg:bg-white overflow-y-auto">
+                <div className="w-full max-w-md mx-auto space-y-8">
+                    <div className="text-center lg:text-left">
+                        <h2 className="text-3xl font-bold tracking-tight text-slate-900">Create an account</h2>
+                        <p className="mt-2 text-sm text-slate-600">
+                            Already have an account?{' '}
+                            <Link href="/login" className="font-semibold text-brand-600 hover:text-brand-500 hover:underline">
+                                Log in
+                            </Link>
+                        </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                        {/* Name */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-slate-700">Full Name <span className="text-red-500">*</span></label>
-                            <input
-                                type="text"
-                                name="name"
-                                required
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="John Doe"
-                                className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-                            />
-                        </div>
-
-                        {/* Email */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-slate-700">
-                                {formData.role === 'mentor' ? 'University Email' : 'Email'} <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="email"
-                                name="email"
-                                required
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="name@example.com"
-                                className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-                            />
-                        </div>
-
-                        {/* Password */}
-                        <div className="space-y-2 md:col-span-2">
-                            <label className="text-sm font-semibold text-slate-700">Password <span className="text-red-500">*</span></label>
-                            <input
-                                type="password"
-                                name="password"
-                                required
-                                value={formData.password}
-                                onChange={handleChange}
-                                placeholder="••••••••"
-                                className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-                            />
-                        </div>
-
-                        {formData.role === 'mentor' && (
-                            <>
-                                {/* University */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-slate-700">University <span className="text-red-500">*</span></label>
-                                    <input
-                                        type="text"
-                                        name="university"
-                                        required={formData.role === 'mentor'}
-                                        value={formData.university}
-                                        onChange={handleChange}
-                                        placeholder="e.g. Dhaka University"
-                                        className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-                                    />
-                                </div>
-
-                                {/* Department */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-slate-700">Department <span className="text-red-500">*</span></label>
-                                    <input
-                                        type="text"
-                                        name="department"
-                                        required={formData.role === 'mentor'}
-                                        value={formData.department}
-                                        onChange={handleChange}
-                                        placeholder="e.g. CSE"
-                                        className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-                                    />
-                                </div>
-
-                                {/* ID Card Upload - Full width in grid */}
-                                <div className="space-y-2 md:col-span-2">
-                                    <FileUpload
-                                        label="Student ID Card (Upload for Verification)"
-                                        value={formData.studentIdUrl}
-                                        onChange={(url) => setFormData({ ...formData, studentIdUrl: url })}
-                                        onUpload={handleFileUploadWrapper}
-                                        uploading={uploading}
-                                        accept="image/*,application/pdf"
-                                    />
-                                </div>
-                            </>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {error && (
+                            <div className="p-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg flex items-center gap-2">
+                                <span className="h-1.5 w-1.5 rounded-full bg-red-600 flex-shrink-0" />
+                                {error}
+                            </div>
                         )}
-                    </div>
 
-                    <div className="pt-4 sticky bottom-0 bg-white/80 backdrop-blur-sm md:static md:bg-transparent md:pt-0">
+                        {/* Role Selector */}
+                        <div className="p-1 bg-slate-100 rounded-xl flex gap-1">
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, role: 'candidate', title: 'Admission Candidate' })}
+                                className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${formData.role !== 'mentor'
+                                    ? 'bg-white text-slate-900 shadow-sm'
+                                    : 'text-slate-500 hover:text-slate-900'
+                                    }`}
+                            >
+                                Student
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, role: 'mentor', title: 'Mentor' })}
+                                className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${formData.role === 'mentor'
+                                    ? 'bg-white text-brand-700 shadow-sm'
+                                    : 'text-slate-500 hover:text-slate-900'
+                                    }`}
+                            >
+                                Mentor
+                            </button>
+                        </div>
+
+                        <div className="space-y-5">
+                            {/* Common Fields */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    required
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    className="block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:border-brand-500 focus:ring-brand-500 sm:text-sm transition-shadow"
+                                    placeholder="e.g. Adnan Sami"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    required
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    className="block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:border-brand-500 focus:ring-brand-500 sm:text-sm transition-shadow"
+                                    placeholder="e.g. name@example.com"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    required
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    className="block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:border-brand-500 focus:ring-brand-500 sm:text-sm transition-shadow"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+
+                            {/* Mentor Specific Fields */}
+                            {formData.role === 'mentor' && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    className="space-y-5 pt-2 border-t border-slate-100"
+                                >
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-1">University</label>
+                                            <input
+                                                type="text"
+                                                name="university"
+                                                required
+                                                value={formData.university}
+                                                onChange={handleChange}
+                                                className="block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:border-brand-500 focus:ring-brand-500 sm:text-sm transition-shadow"
+                                                placeholder="e.g. DU"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-1">Department</label>
+                                            <input
+                                                type="text"
+                                                name="department"
+                                                required
+                                                value={formData.department}
+                                                onChange={handleChange}
+                                                className="block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:border-brand-500 focus:ring-brand-500 sm:text-sm transition-shadow"
+                                                placeholder="e.g. EEE"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <FileUpload
+                                            label="Student ID (Verification)"
+                                            value={formData.studentIdUrl}
+                                            onChange={(url) => setFormData({ ...formData, studentIdUrl: url })}
+                                            onUpload={handleFileUploadWrapper}
+                                            uploading={uploading}
+                                            accept="image/*,application/pdf"
+                                        />
+                                    </div>
+                                </motion.div>
+                            )}
+                        </div>
+
                         <Button
                             type="submit"
-                            className="w-full h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-200 transition-all hover:scale-[1.01] active:scale-[0.99]"
                             disabled={loading || (formData.role === 'mentor' && !formData.studentIdUrl)}
+                            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-all hover:scale-[1.01]"
                         >
-                            {loading ? <Loader2 className="mr-2 h-5 w-4 animate-spin" /> : 'Create My Account'}
+                            {loading ? <Loader2 className="animate-spin h-5 w-5" /> : (
+                                <span className="flex items-center">
+                                    Create Account <ArrowRight className="ml-2 h-4 w-4" />
+                                </span>
+                            )}
                         </Button>
-                    </div>
-                </form>
-            </CardContent>
-
-            <CardFooter className="flex flex-col space-y-4 pb-6 pt-2 shrink-0 border-t border-slate-100/50">
-                <div className="w-full h-px bg-slate-100 relative">
-                    <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
-                        OR
-                    </span>
+                    </form>
                 </div>
-                <div className="text-sm text-slate-500 font-medium">
-                    Already have an account? <Link href="/login" className="text-emerald-600 font-bold hover:underline underline-offset-4 decoration-2">Log In Here</Link>
-                </div>
-            </CardFooter>
-        </Card>
+            </div>
+        </div>
     );
 }
 
 export default function RegisterPage() {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-8">
-            <Suspense fallback={<div>Loading...</div>}>
-                <RegisterForm />
-            </Suspense>
-        </div>
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="h-8 w-8 animate-spin text-brand-600" /></div>}>
+            <RegisterForm />
+        </Suspense>
     );
 }
