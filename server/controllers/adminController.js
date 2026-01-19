@@ -294,7 +294,7 @@ const updateSettings = async (req, res) => {
 // @access  Public
 const getSettings = async (req, res) => {
     try {
-        const settings = await Settings.findOne() || { 
+        const settings = await Settings.findOne().lean() || { 
             commissionRate: 20, 
             adminPaymentNumber: "01700000000",
             monthlyPrice: 500,
@@ -350,7 +350,8 @@ const getTransactions = async (req, res) => {
             .populate('user', 'name email')
             .populate('mentor', 'name email')
             .sort({ createdAt: -1 })
-            .limit(50);
+            .limit(50)
+            .lean();
         res.json(transactions);
     } catch (error) {
         console.error("getTransactions Error:", error);

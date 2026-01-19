@@ -22,12 +22,20 @@ const getMentors = async (req, res) => {
             }
             : {};
 
-        const mentors = await MentorProfile.find(keyword).populate('user', 'name email verified isMentorVerified role profilePic');
+        // Find verified users who are mentors
+        const verifiedMentorUsers = await User.find({ 
+            role: 'mentor', 
+            isMentorVerified: true 
+        }).select('_id');
         
-        // Only return mentors who are verified
-        const verifiedMentors = mentors.filter(mentor => mentor.user && mentor.user.isMentorVerified);
+        const mentorIds = verifiedMentorUsers.map(u => u._id);
 
-        res.json(verifiedMentors);
+        const mentors = await MentorProfile.find({
+            user: { $in: mentorIds },
+            ...keyword
+        }).populate('user', 'name email verified isMentorVerified role profilePic').lean();
+
+        res.json(mentors);
     } catch (error) {
         console.error("GET MENTORS ERROR:", error);
         res.status(500).json({ message: 'Server Error' });
