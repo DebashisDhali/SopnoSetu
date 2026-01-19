@@ -50,9 +50,10 @@ export default function MentorsPage() {
     return (
         <div className="min-h-screen bg-slate-50/50 pb-20">
             {/* Header Banner */}
-            <div className="bg-slate-900 pt-20 pb-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-600 rounded-full blur-[100px] opacity-20 transform translate-x-1/2 -translate-y-1/2"></div>
+            <div className="bg-white pt-20 pb-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden border-b border-brand-100">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10"></div>
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-100 rounded-full blur-[100px] opacity-60 transform translate-x-1/2 -translate-y-1/2"></div>
+                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-teal-50 rounded-full blur-[100px] opacity-60 transform -translate-x-1/3 translate-y-1/3"></div>
 
                 <div className="max-w-7xl mx-auto relative z-10 text-center">
                     <motion.div
@@ -60,10 +61,10 @@ export default function MentorsPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 tracking-tight">
-                            Find Your Perfect <span className="text-brand-400">Mentor</span>
+                        <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">
+                            Find Your Perfect <span className="text-brand-600">Mentor</span>
                         </h1>
-                        <p className="text-lg text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
+                        <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
                             Connect with verified seniors from Dhaka University, BUET, DMC, and more.
                             Get guided, get inspired.
                         </p>
@@ -77,8 +78,8 @@ export default function MentorsPage() {
                         className="max-w-2xl mx-auto relative"
                     >
                         <div className="relative group">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-teal-500 rounded-full opacity-75 group-hover:opacity-100 blur transition duration-200"></div>
-                            <div className="relative flex items-center bg-white rounded-full shadow-2xl p-2">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-brand-200 to-teal-200 rounded-full opacity-75 group-hover:opacity-100 blur transition duration-200"></div>
+                            <div className="relative flex items-center bg-white rounded-full shadow-xl p-2 border border-slate-100">
                                 <Search className="ml-4 text-slate-400 h-6 w-6" />
                                 <input
                                     type="text"
@@ -87,7 +88,7 @@ export default function MentorsPage() {
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
-                                <Button className="rounded-full px-6 bg-slate-900 text-white hover:bg-slate-800 font-medium transition-all">
+                                <Button className="rounded-full px-6 bg-brand-600 text-white hover:bg-brand-700 font-medium transition-all shadow-md">
                                     Search
                                 </Button>
                             </div>

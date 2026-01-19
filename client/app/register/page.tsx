@@ -79,40 +79,40 @@ function RegisterForm() {
     return (
         <div className="flex min-h-screen bg-white">
             {/* Left Side - Branding & Testimonial (Hidden on mobile) */}
-            <div className="hidden lg:flex lg:w-1/2 relative bg-slate-900 text-white flex-col justify-between p-12 overflow-hidden">
+            <div className="hidden lg:flex lg:w-1/2 relative bg-brand-50 text-slate-900 flex-col justify-between p-12 overflow-hidden border-r border-brand-100">
                 <div className="absolute inset-0 z-0">
                     <img
                         src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop"
                         alt="University Campus"
-                        className="w-full h-full object-cover opacity-20"
+                        className="w-full h-full object-cover opacity-5 grayscale"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-br from-brand-900/90 to-slate-900/90" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-brand-50/40" />
                 </div>
 
                 <div className="relative z-10">
-                    <Link href="/" className="inline-flex items-center gap-2 text-2xl font-bold font-serif mb-8">
-                        <GraduationCap className="h-8 w-8 text-brand-400" />
+                    <Link href="/" className="inline-flex items-center gap-2 text-2xl font-bold font-serif mb-8 text-brand-700">
+                        <GraduationCap className="h-8 w-8 text-brand-600" />
                         <span>SopnoSetu</span>
                     </Link>
-                    <h2 className="text-4xl font-extrabold leading-tight mb-4">
+                    <h2 className="text-4xl font-extrabold leading-tight mb-4 text-slate-900">
                         Begin Your Journey to <br />
-                        <span className="text-brand-400">Academic Excellence.</span>
+                        <span className="text-brand-600">Academic Excellence.</span>
                     </h2>
-                    <p className="text-slate-300 text-lg max-w-md">
+                    <p className="text-slate-600 text-lg max-w-md">
                         Join thousands of students and mentors connecting daily to shape the future of Bangladesh.
                     </p>
                 </div>
 
-                <div className="relative z-10 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10">
+                <div className="relative z-10 bg-white rounded-2xl p-6 shadow-xl border border-brand-100">
                     <Quote className="h-8 w-8 text-brand-400 mb-4 opacity-50" />
-                    <p className="text-lg font-medium italic mb-4 leading-relaxed">
+                    <p className="text-lg font-medium italic mb-4 leading-relaxed text-slate-700">
                         "Finding a mentor from BUET through SopnoSetu was the turning point in my preparation. Their guidance was invaluable."
                     </p>
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-brand-500 flex items-center justify-center font-bold text-white">S</div>
+                        <div className="h-10 w-10 rounded-full bg-brand-600 flex items-center justify-center font-bold text-white shadow-md">S</div>
                         <div>
-                            <div className="font-bold text-white">Sakib Ahmed</div>
-                            <div className="text-xs text-brand-200">CSE, BUET (Batch '23)</div>
+                            <div className="font-bold text-slate-900">Sakib Ahmed</div>
+                            <div className="text-xs text-brand-600 font-semibold">CSE, BUET (Batch '23)</div>
                         </div>
                     </div>
                 </div>
