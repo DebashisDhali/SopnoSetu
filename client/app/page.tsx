@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { ArrowRight, BookOpen, Users, Video, Award, Star, CheckCircle2 } from 'lucide-react';
@@ -51,12 +51,12 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="flex flex-col sm:flex-row justify-center gap-4"
             >
-              <Link href="/mentors">
+              <Link href="/mentors" prefetch={true}>
                 <Button size="lg" className="bg-brand-600 hover:bg-brand-700 text-white text-lg px-8 py-6 h-auto w-full sm:w-auto rounded-full shadow-xl shadow-brand-500/20 transition-all hover:scale-[1.02]">
                   Find a Mentor <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link href="/register?role=mentor">
+              <Link href="/register?role=mentor" prefetch={true}>
                 <Button size="lg" variant="outline" className="text-lg px-8 py-6 h-auto w-full sm:w-auto rounded-full border-2 bg-white hover:bg-slate-50 text-slate-700">
                   Become a Mentor
                 </Button>
@@ -163,7 +163,7 @@ export default function Home() {
 
             <h2 className="text-3xl md:text-5xl font-bold mb-6">Stop Dreaming, Start Preparing.</h2>
             <p className="text-brand-100 text-lg mb-10 max-w-2xl mx-auto">Access the collective wisdom of thousands of successful students. Your seat is waiting.</p>
-            <Link href="/register">
+            <Link href="/register" prefetch={true}>
               <Button size="lg" className="bg-white text-brand-700 hover:bg-brand-50 text-lg px-10 py-6 rounded-full font-bold shadow-xl border-4 border-transparent hover:border-brand-200 transition-all">
                 Join SopnoSetu for Free
               </Button>
@@ -185,13 +185,13 @@ function StatItem({ number, label }: { number: string, label: string }) {
   )
 }
 
-function UniversityLogo({ name }: { name: string }) {
+const UniversityLogo = memo(({ name }: { name: string }) => {
   return (
     <span className="text-xl font-bold text-slate-400 font-serif">{name}</span>
   )
-}
+});
 
-function FeatureCard({ icon, color, title, description }: { icon: React.ReactNode, color: string, title: string, description: string }) {
+const FeatureCard = memo(({ icon, color, title, description }: { icon: React.ReactNode, color: string, title: string, description: string }) => {
   return (
     <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
       <div className={`h-12 w-12 rounded-xl ${color} flex items-center justify-center mb-6 shadow-lg shadow-${color.replace('bg-', '')}/30`}>
@@ -203,7 +203,7 @@ function FeatureCard({ icon, color, title, description }: { icon: React.ReactNod
       </p>
     </div>
   );
-}
+});
 
 function TestimonialCard({ quote, author, tag }: { quote: string, author: string, tag: string }) {
   return (

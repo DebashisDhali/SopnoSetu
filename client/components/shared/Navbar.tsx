@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { Menu, X, User, Bell } from 'lucide-react';
@@ -18,12 +18,13 @@ const Navbar = () => {
 
     const [unreadCount, setUnreadCount] = useState(0);
 
-    const fetchUnread = async () => {
+    const fetchUnread = useCallback(async () => {
+        if (!localStorage.getItem('token')) return;
         try {
             const { data } = await api.get('/chat/unread-count');
             setUnreadCount(data.count);
         } catch (e) { }
-    };
+    }, []);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -36,7 +37,7 @@ const Navbar = () => {
         window.addEventListener('scroll', handleScroll);
 
         // Check login status
-        const checkLogin = () => {
+        const checkLogin = useCallback(() => {
             const userStr = localStorage.getItem('user');
             if (userStr) {
                 setIsLoggedIn(true);
@@ -45,15 +46,13 @@ const Navbar = () => {
                     setUserRole(user.role);
                     fetchUnread();
                 } catch (e) {
-                    console.error("Failed to parse user from local storage");
                     setUserRole(null);
                 }
             } else {
-                setIsLoggedIn(true); // Assuming true if token exists, but let's be safe
-                if (!userStr) setIsLoggedIn(false);
+                setIsLoggedIn(false);
                 setUserRole(null);
             }
-        }
+        }, [fetchUnread]);
 
         checkLogin();
 
@@ -125,17 +124,13 @@ const Navbar = () => {
                             <Link
                                 key={link.name}
                                 href={link.href}
+                                prefetch={link.name !== 'About' ? true : false}
                                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 relative flex items-center gap-1 ${pathname === link.href
                                     ? 'bg-brand-50 text-brand-700'
                                     : 'text-slate-600 hover:text-brand-600 hover:bg-white/50'
                                     }`}
                             >
                                 {link.name}
-                                {link.name === 'Messages' && unreadCount > 0 && (
-                                    <span className="bg-red-500 text-white text-[10px] min-w-[18px] h-[18px] rounded-full flex items-center justify-center font-bold px-1 animate-in zoom-in">
-                                        {unreadCount}
-                                    </span>
-                                )}
                             </Link>
                         ))}
                     </div>
