@@ -1,8 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Bell, Loader2, Check, X, Info, MessageCircle, Calendar, Star } from 'lucide-react';
+import { Bell, Info, MessageCircle, Calendar, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import api from '@/services/api';
 import { useRouter } from 'next/navigation';
@@ -19,8 +18,8 @@ interface Notification {
 
 export default function NotificationBell() {
     const router = useRouter();
+    const [isMounted, setIsMounted] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [loading, setLoading] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
 
     const fetchNotifications = async () => {
@@ -29,16 +28,14 @@ export default function NotificationBell() {
             if (Array.isArray(data)) {
                 setNotifications(data);
                 setUnreadCount(data.filter((n: Notification) => !n.isRead).length);
-            } else {
-                console.error("Notifications data is not an array:", data);
             }
         } catch (error: any) {
             console.error("FAILED TO FETCH NOTIFICATIONS:", error.response?.data || error.message);
-            // Don't toast here to avoid spamming the user if it's a recurring poll error
         }
     };
 
     useEffect(() => {
+        setIsMounted(true);
         fetchNotifications();
         const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
         return () => clearInterval(interval);
@@ -76,6 +73,26 @@ export default function NotificationBell() {
             default: return <Info size={14} className="text-slate-500" />;
         }
     };
+
+    const formatNotificationTime = (dateStr: string) => {
+        if (!isMounted) return '';
+        try {
+            const date = new Date(dateStr);
+            const now = new Date();
+            if (date.toLocaleDateString() !== now.toLocaleDateString()) {
+                return date.toLocaleDateString();
+            }
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } catch (e) {
+            return '';
+        }
+    }
+
+    if (!isMounted) return (
+        <div className="p-2 rounded-full">
+            <Bell size={20} className="text-slate-400 opacity-50" />
+        </div>
+    );
 
     return (
         <Popover>
@@ -119,9 +136,7 @@ export default function NotificationBell() {
                                     </p>
                                     <p className="text-[11px] text-slate-500 line-clamp-2">{n.message}</p>
                                     <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">
-                                        {new Date(n.createdAt).toLocaleDateString() !== new Date().toLocaleDateString()
-                                            ? new Date(n.createdAt).toLocaleDateString()
-                                            : new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        {formatNotificationTime(n.createdAt)}
                                     </p>
                                 </div>
                                 {!n.isRead && <div className="w-2 h-2 rounded-full bg-brand-600 mt-1.5 shrink-0" />}

@@ -1,14 +1,15 @@
 "use client";
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
-import { Menu, X, User, Bell } from 'lucide-react';
+import { Menu, X, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/services/api';
 import { usePathname, useRouter } from 'next/navigation';
 import NotificationBell from './NotificationBell';
 
 const Navbar = () => {
+    const [isMounted, setIsMounted] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -19,50 +20,49 @@ const Navbar = () => {
     const [unreadCount, setUnreadCount] = useState(0);
 
     const fetchUnread = useCallback(async () => {
-        if (!localStorage.getItem('token')) return;
+        if (typeof window === 'undefined' || !localStorage.getItem('token')) return;
         try {
             const { data } = await api.get('/chat/unread-count');
-            setUnreadCount(data.count);
-        } catch (e) { }
+            setUnreadCount(data?.count || 0);
+        } catch (e) {
+            // Ignore fetch errors for count
+        }
     }, []);
 
-    useEffect(() => {
-        const handleScroll = () => {
-            if (window.scrollY > 10) {
-                setScrolled(true);
-            } else {
-                setScrolled(false);
+    const checkLogin = useCallback(() => {
+        if (typeof window === 'undefined') return;
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            setIsLoggedIn(true);
+            try {
+                const user = JSON.parse(userStr);
+                setUserRole(user.role);
+                fetchUnread();
+            } catch (e) {
+                setUserRole(null);
             }
+        } else {
+            setIsLoggedIn(false);
+            setUserRole(null);
+        }
+    }, [fetchUnread]);
+
+    useEffect(() => {
+        setIsMounted(true);
+        checkLogin();
+
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 10);
         };
         window.addEventListener('scroll', handleScroll);
 
-        // Check login status
-        const checkLogin = useCallback(() => {
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-                setIsLoggedIn(true);
-                try {
-                    const user = JSON.parse(userStr);
-                    setUserRole(user.role);
-                    fetchUnread();
-                } catch (e) {
-                    setUserRole(null);
-                }
-            } else {
-                setIsLoggedIn(false);
-                setUserRole(null);
-            }
-        }, [fetchUnread]);
-
-        checkLogin();
-
         const interval = setInterval(() => {
-            if (localStorage.getItem('token')) fetchUnread();
-        }, 10000); // Check every 10 seconds
+            if (typeof window !== 'undefined' && localStorage.getItem('token')) {
+                fetchUnread();
+            }
+        }, 30000); // Check every 30 seconds to save network
 
-        // Listen for storage events (cross-tab)
         window.addEventListener('storage', checkLogin);
-        // Listen for custom auth events (same-tab)
         window.addEventListener('auth-change', checkLogin);
         window.addEventListener('refresh-unread', fetchUnread);
 
@@ -73,13 +73,14 @@ const Navbar = () => {
             window.removeEventListener('refresh-unread', fetchUnread);
             clearInterval(interval);
         };
-    }, []);
+    }, [checkLogin, fetchUnread]);
 
     const handleLogout = () => {
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        // Dispatch event so Navbar updates immediately
-        window.dispatchEvent(new Event('auth-change'));
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            window.dispatchEvent(new Event('auth-change'));
+        }
         setIsLoggedIn(false);
         setUserRole(null);
         router.push('/login');
@@ -99,10 +100,24 @@ const Navbar = () => {
         { name: 'About', href: '/about' },
     ];
 
+    // Prevent hydration mismatch
+    if (!isMounted) {
+        return (
+            <nav className="fixed w-full z-50 py-5 bg-transparent">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center text-slate-950 font-bold text-2xl">
+                    <div className="flex items-center">
+                        <div className="w-10 h-10 bg-brand-600 rounded-xl mr-2"></div>
+                        SopnoSetu
+                    </div>
+                </div>
+            </nav>
+        );
+    }
+
     return (
         <nav
             className={`fixed w-full z-50 transition-all duration-300 ${scrolled
-                ? 'glass shadow-md py-3'
+                ? 'bg-white/80 backdrop-blur-md shadow-md py-3'
                 : 'bg-transparent py-5'
                 }`}
         >
@@ -113,7 +128,7 @@ const Navbar = () => {
                         <div className="w-10 h-10 bg-gradient-to-br from-brand-600 to-brand-800 rounded-xl flex items-center justify-center text-white font-bold text-xl mr-2 shadow-lg group-hover:shadow-brand-500/30 transition-shadow">
                             S
                         </div>
-                        <span className={`text-2xl font-bold tracking-tight ${scrolled ? 'text-slate-900' : 'text-slate-900'}`}>
+                        <span className="text-2xl font-bold tracking-tight text-slate-900">
                             Sopno<span className="text-brand-600">Setu</span>
                         </span>
                     </Link>
@@ -124,7 +139,6 @@ const Navbar = () => {
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                prefetch={link.name !== 'About' ? true : false}
                                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 relative flex items-center gap-1 ${pathname === link.href
                                     ? 'bg-brand-50 text-brand-700'
                                     : 'text-slate-600 hover:text-brand-600 hover:bg-white/50'
