@@ -1,12 +1,11 @@
 "use client";
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import api from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Loader2, CheckCircle, XCircle, Eye, ShieldCheck, Mail, Building, FileText, Ban, History, Activity, TrendingUp, Wallet, CreditCard, ArrowUpRight, Users } from 'lucide-react';
 import { toast } from 'sonner';
-import { StatusAlert } from '@/components/ui/status-alert';
 import { getErrorMessage } from '@/services/api';
 
 interface MentorApplication {
@@ -29,6 +28,7 @@ interface MentorApplication {
 }
 
 const AdminDashboard = () => {
+    const [isMounted, setIsMounted] = useState(false);
     const [applications, setApplications] = useState<MentorApplication[]>([]);
     const [stats, setStats] = useState<any>(null);
     const [transactions, setTransactions] = useState<any[]>([]);
@@ -61,11 +61,15 @@ const AdminDashboard = () => {
 
     const [isDeclineConfirmOpen, setIsDeclineConfirmOpen] = useState(false);
 
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     const fetchApplications = useCallback(async () => {
         setFetchingApps(true);
         try {
             const { data } = await api.get('/admin/mentor-applications');
-            setApplications(data || []);
+            setApplications(Array.isArray(data) ? data : []);
         } catch (error: any) {
             toast.error(getErrorMessage(error));
         } finally {
@@ -110,7 +114,7 @@ const AdminDashboard = () => {
         setFetchingTrans(true);
         try {
             const { data } = await api.get('/admin/transactions');
-            setTransactions(data || []);
+            setTransactions(Array.isArray(data) ? data : []);
         } catch (error: any) {
             toast.error(getErrorMessage(error));
         } finally {
@@ -119,13 +123,14 @@ const AdminDashboard = () => {
     }, []);
 
     useEffect(() => {
+        if (!isMounted) return;
         if (activeTab === 'applications') fetchApplications();
         if (activeTab === 'stats') {
             fetchStats();
             fetchTransactions();
         }
         if (activeTab === 'settings') fetchSettings();
-    }, [activeTab, fetchApplications, fetchStats, fetchTransactions, fetchSettings]);
+    }, [activeTab, isMounted, fetchApplications, fetchStats, fetchTransactions, fetchSettings]);
 
     const handleUpdateSettings = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -238,6 +243,21 @@ const AdminDashboard = () => {
 
     const loadingAny = fetchingApps || fetchingStats || fetchingSettings || fetchingTrans;
 
+    const formatDate = (dateString: string) => {
+        if (!dateString) return 'N/A';
+        try {
+            return new Date(dateString).toLocaleDateString();
+        } catch (e) {
+            return 'Invalid Date';
+        }
+    };
+
+    if (!isMounted) return (
+        <div className="flex justify-center items-center py-20">
+            <Loader2 className="animate-spin text-brand-600" size={40} />
+        </div>
+    );
+
     return (
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -284,49 +304,41 @@ const AdminDashboard = () => {
                                     <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
                                         <TrendingUp size={80} />
                                     </div>
-                                    <CardHeader className="pb-1 px-6 pt-6 relative z-10">
-                                        <CardTitle className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Gross Revenue</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="px-6 pb-6 relative z-10">
+                                    <div className="p-6 relative z-10">
+                                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Gross Revenue</p>
                                         <p className="text-3xl font-black tracking-tighter">৳{stats?.totalRevenue || 0}</p>
                                         <div className="mt-2 flex items-center gap-1.5 text-[10px] text-emerald-400 font-bold uppercase tracking-tight">
                                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                                             Total Inflow
                                         </div>
-                                    </CardContent>
+                                    </div>
                                 </Card>
 
                                 <Card className="bg-white border-slate-100 shadow-xl rounded-3xl group transition-all hover:bg-emerald-50/30">
-                                    <CardHeader className="pb-1 px-6 pt-6">
-                                        <CardTitle className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Platform Profit</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="px-6 pb-6 text-emerald-600">
-                                        <p className="text-3xl font-black tracking-tighter">৳{stats?.totalCommission || 0}</p>
+                                    <div className="p-6">
+                                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Platform Profit</p>
+                                        <p className="text-3xl font-black tracking-tighter text-emerald-600">৳{stats?.totalCommission || 0}</p>
                                         <p className="mt-2 text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Service Commissions</p>
-                                    </CardContent>
+                                    </div>
                                 </Card>
 
                                 <Card className="bg-white border-slate-100 shadow-xl rounded-3xl group transition-all hover:bg-slate-50">
-                                    <CardHeader className="pb-1 px-6 pt-6">
-                                        <CardTitle className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Liquid Payouts</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="px-6 pb-6">
+                                    <div className="p-6">
+                                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Liquid Payouts</p>
                                         <p className="text-3xl font-black tracking-tighter text-slate-900">৳{stats?.totalMentorPayout || 0}</p>
                                         <p className="mt-2 text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Successfully Settled</p>
-                                    </CardContent>
+                                    </div>
                                 </Card>
 
                                 <Card className="bg-brand-600 text-white border-0 shadow-xl rounded-3xl relative overflow-hidden">
                                     <div className="absolute -bottom-4 -right-4 opacity-10">
                                         <Wallet size={100} />
                                     </div>
-                                    <CardHeader className="pb-1 px-6 pt-6">
-                                        <CardTitle className="text-brand-200 text-[10px] font-black uppercase tracking-[0.2em]">Pending Liabilities</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="px-6 pb-6">
+                                    <div className="p-6">
+                                        <p className="text-brand-200 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Pending Liabilities</p>
                                         <p className="text-3xl font-black tracking-tighter">৳{stats?.totalPendingBalance || 0}</p>
                                         <p className="mt-2 text-[10px] text-brand-200 font-bold uppercase tracking-tighter italic">Currently in Wallets</p>
-                                    </CardContent>
+                                    </div>
                                 </Card>
                             </div>
 
@@ -348,7 +360,7 @@ const AdminDashboard = () => {
                                                     </thead>
                                                     <tbody className="divide-y divide-slate-50">
                                                         {(applications || [])
-                                                            .filter(a => a.user?.isMentorVerified === true)
+                                                            .filter(a => a?.user?.isMentorVerified === true)
                                                             .map((app) => (
                                                                 <tr key={app._id} className="group hover:bg-slate-50/80 transition-all">
                                                                     <td className="px-8 py-6">
@@ -409,11 +421,11 @@ const AdminDashboard = () => {
                                 </div>
 
                                 <Card className="border-0 shadow-xl rounded-3xl overflow-hidden self-start bg-slate-900 text-white">
-                                    <CardHeader className="border-b border-white/5 bg-white/5 p-6">
-                                        <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                                    <div className="border-b border-white/5 bg-white/5 p-6">
+                                        <h4 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
                                             <History size={16} className="text-brand-400" /> Recent Ledger
-                                        </CardTitle>
-                                    </CardHeader>
+                                        </h4>
+                                    </div>
                                     <CardContent className="p-0 max-h-[500px] overflow-y-auto">
                                         {(transactions || []).map((t) => (
                                             <div key={t._id} className="p-6 border-b border-white/5 hover:bg-white/5">
@@ -421,11 +433,11 @@ const AdminDashboard = () => {
                                                     <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase ${t.type === 'payout' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
                                                         {t.type}
                                                     </span>
-                                                    <span className="text-[9px] text-white/30 font-bold">{t.createdAt ? new Date(t.createdAt).toLocaleDateString() : 'N/A'}</span>
+                                                    <span className="text-[9px] text-white/30 font-bold">{formatDate(t.createdAt)}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center">
                                                     <div>
-                                                        <p className="text-xs font-black">{t.type === 'payout' ? t.mentor?.name : t.user?.name || 'Unknown'}</p>
+                                                        <p className="text-xs font-black">{((t.type === 'payout' ? t.mentor?.name : t.user?.name) || 'Unknown')}</p>
                                                         <p className="text-[9px] font-mono text-white/40">{t.transactionId}</p>
                                                     </div>
                                                     <p className="text-lg font-black text-white">৳{t.amount}</p>
@@ -581,11 +593,11 @@ const AdminDashboard = () => {
                         {selectedApp && selectedApp.user && !selectedApp.user.isMentorVerified && (
                             <>
                                 <Button variant="destructive" onClick={() => setIsDeclineConfirmOpen(true)} disabled={declining}>Decline</Button>
-                                <Button onClick={() => handleVerify(selectedApp.user._id)} className="bg-green-600 hover:bg-green-700" disabled={verifying}>Approve</Button>
+                                <Button onClick={() => selectedApp.user?._id && handleVerify(selectedApp.user._id)} className="bg-green-600 hover:bg-green-700" disabled={verifying}>Approve</Button>
                             </>
                         )}
                         {selectedApp && selectedApp.user?.isMentorVerified && (
-                            <Button variant="outline" onClick={() => handleUnverify(selectedApp.user._id)} className="text-red-600 border-red-200">Unverify</Button>
+                            <Button variant="outline" onClick={() => selectedApp.user?._id && handleUnverify(selectedApp.user._id)} className="text-red-600 border-red-200">Unverify</Button>
                         )}
                     </DialogFooter>
                 </DialogContent>
