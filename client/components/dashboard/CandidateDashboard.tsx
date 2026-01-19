@@ -86,8 +86,9 @@ const CandidateDashboard = () => {
             });
             setProfileData({ ...profileData, profilePic: data.url });
             toast.success("Photo uploaded successfully");
-        } catch (error) {
-            toast.error("Upload failed");
+        } catch (error: any) {
+            const message = error.response?.data?.message || "Upload failed";
+            toast.error(message);
         } finally {
             setUploading(false);
         }

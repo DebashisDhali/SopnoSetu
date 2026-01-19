@@ -161,8 +161,9 @@ const MentorDashboard = ({ user }: MentorDashboardProps) => {
             });
             setProfileData({ ...profileData, [field]: data.url });
             toast.success("File uploaded successfully");
-        } catch (error) {
-            toast.error("Upload failed");
+        } catch (error: any) {
+            const message = error.response?.data?.message || "Upload failed";
+            toast.error(message);
             console.error(error);
         } finally {
             setUploading(null);

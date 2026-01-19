@@ -41,8 +41,10 @@ function RegisterForm() {
             });
             setFormData(prev => ({ ...prev, studentIdUrl: data.url }));
             toast.success("ID Card uploaded successfully");
-        } catch (error) {
-            setError("Upload failed. Please try again.");
+        } catch (error: any) {
+            console.error("Upload error:", error);
+            const message = error.response?.data?.message || "Upload failed. Please try again.";
+            setError(message);
         } finally {
             setUploading(false);
         }
