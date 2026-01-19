@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import api from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { StatusAlert } from '@/components/ui/status-alert';
 import { getErrorMessage } from '@/services/api';
 
 interface MentorApplication {
-    _id: string; // This is the MentorProfile ID
+    _id: string;
     university: string;
     department: string;
     bio: string;
@@ -61,19 +61,19 @@ const AdminDashboard = () => {
 
     const [isDeclineConfirmOpen, setIsDeclineConfirmOpen] = useState(false);
 
-    const fetchApplications = async () => {
+    const fetchApplications = useCallback(async () => {
         setFetchingApps(true);
         try {
             const { data } = await api.get('/admin/mentor-applications');
-            setApplications(data);
+            setApplications(data || []);
         } catch (error: any) {
             toast.error(getErrorMessage(error));
         } finally {
             setFetchingApps(false);
         }
-    };
+    }, []);
 
-    const fetchStats = async () => {
+    const fetchStats = useCallback(async () => {
         setFetchingStats(true);
         try {
             const { data } = await api.get('/admin/stats');
@@ -83,38 +83,40 @@ const AdminDashboard = () => {
         } finally {
             setFetchingStats(false);
         }
-    };
+    }, []);
 
-    const fetchSettings = async () => {
+    const fetchSettings = useCallback(async () => {
         setFetchingSettings(true);
         try {
             const { data } = await api.get('/admin/settings');
-            setAdminNumber(data.adminPaymentNumber);
-            setCommRate(data.commissionRate.toString());
-            setMonthlyPrice(data.monthlyPrice?.toString() || '500');
-            setYearlyPrice(data.yearlyPrice?.toString() || '5000');
-            setMonthlyMentors(data.monthlyMentorLimit?.toString() || '2');
-            setYearlyMentors(data.yearlyMentorLimit?.toString() || '5');
-            setMonthlySessions(data.monthlySessionLimit?.toString() || '10');
-            setYearlySessions(data.yearlySessionLimit?.toString() || '100');
+            if (data) {
+                setAdminNumber(data.adminPaymentNumber || '');
+                setCommRate(data.commissionRate?.toString() || '20');
+                setMonthlyPrice(data.monthlyPrice?.toString() || '500');
+                setYearlyPrice(data.yearlyPrice?.toString() || '5000');
+                setMonthlyMentors(data.monthlyMentorLimit?.toString() || '2');
+                setYearlyMentors(data.yearlyMentorLimit?.toString() || '5');
+                setMonthlySessions(data.monthlySessionLimit?.toString() || '10');
+                setYearlySessions(data.yearlySessionLimit?.toString() || '100');
+            }
         } catch (error: any) {
             toast.error(getErrorMessage(error));
         } finally {
             setFetchingSettings(false);
         }
-    };
+    }, []);
 
-    const fetchTransactions = async () => {
+    const fetchTransactions = useCallback(async () => {
         setFetchingTrans(true);
         try {
             const { data } = await api.get('/admin/transactions');
-            setTransactions(data);
+            setTransactions(data || []);
         } catch (error: any) {
             toast.error(getErrorMessage(error));
         } finally {
             setFetchingTrans(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         if (activeTab === 'applications') fetchApplications();
@@ -123,16 +125,7 @@ const AdminDashboard = () => {
             fetchTransactions();
         }
         if (activeTab === 'settings') fetchSettings();
-    }, [activeTab]);
-
-    const fetchData = async () => {
-        if (activeTab === 'applications') fetchApplications();
-        if (activeTab === 'stats') {
-            fetchStats();
-            fetchTransactions();
-        }
-        if (activeTab === 'settings') fetchSettings();
-    };
+    }, [activeTab, fetchApplications, fetchStats, fetchTransactions, fetchSettings]);
 
     const handleUpdateSettings = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -149,7 +142,7 @@ const AdminDashboard = () => {
                 yearlySessionLimit: Number(yearlySessions)
             });
             toast.success("Settings updated successfully");
-            fetchData();
+            fetchSettings();
         } catch (error: any) {
             toast.error(getErrorMessage(error));
         } finally {
@@ -177,37 +170,40 @@ const AdminDashboard = () => {
             toast.success("Payout marked as completed");
             setPayoutAmount('');
             setPayoutTxId('');
-            fetchData();
-        } catch (e) {
-            toast.error("Payout failed");
+            fetchStats();
+            fetchTransactions();
+        } catch (e: any) {
+            toast.error(getErrorMessage(e) || "Payout failed");
         } finally {
             setProcessingPayout(false);
         }
     };
 
     const handleVerify = async (userId: string) => {
+        if (!userId) return;
         setVerifying(true);
         try {
             await api.put(`/admin/verify-mentor/${userId}`);
             toast.success("Mentor verified successfully");
-            fetchData();
+            fetchApplications();
             setIsDialogOpen(false);
-        } catch (error) {
-            toast.error("Verification failed");
+        } catch (error: any) {
+            toast.error(getErrorMessage(error) || "Verification failed");
         } finally {
             setVerifying(false);
         }
     };
 
     const handleUnverify = async (userId: string) => {
+        if (!userId) return;
         setVerifying(true);
         try {
             await api.put(`/admin/unverify-mentor/${userId}`);
             toast.success("Mentor unverified successfully");
-            fetchData();
+            fetchApplications();
             setIsDialogOpen(false);
-        } catch (error) {
-            toast.error("Failed to unverify");
+        } catch (error: any) {
+            toast.error(getErrorMessage(error) || "Failed to unverify");
         } finally {
             setVerifying(false);
         }
@@ -215,22 +211,23 @@ const AdminDashboard = () => {
 
     const [declining, setDeclining] = useState(false);
     const handleDecline = async (userId: string) => {
+        if (!userId) return;
         setDeclining(true);
         try {
             await api.delete(`/admin/decline-mentor/${userId}`);
             toast.success("Application declined and removed");
-            fetchData();
+            fetchApplications();
             setIsDeclineConfirmOpen(false);
             setIsDialogOpen(false);
-        } catch (error) {
-            toast.error("Failed to decline application");
+        } catch (error: any) {
+            toast.error(getErrorMessage(error) || "Failed to decline application");
         } finally {
             setDeclining(false);
         }
     };
 
-    const openPayoutDialog = (app: any) => {
-        setPayoutAmount(app.walletBalance.toString());
+    const openPayoutDialog = (app: MentorApplication) => {
+        setPayoutAmount((app.walletBalance || 0).toString());
         setPayoutTxId('');
     };
 
@@ -270,7 +267,7 @@ const AdminDashboard = () => {
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={fetchData}
+                            onClick={() => { fetchStats(); fetchTransactions(); }}
                             className="bg-white hover:bg-slate-50 border-slate-200 text-[10px] font-black uppercase tracking-widest h-10 px-6 rounded-xl shadow-sm transition-all hover:shadow-md"
                         >
                             <Loader2 className={`mr-2 h-3.5 w-3.5 ${loadingAny ? 'animate-spin' : ''}`} />
@@ -350,18 +347,18 @@ const AdminDashboard = () => {
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-slate-50">
-                                                        {applications
+                                                        {(applications || [])
                                                             .filter(a => a.user?.isMentorVerified === true)
-                                                            .map((app: any) => (
+                                                            .map((app) => (
                                                                 <tr key={app._id} className="group hover:bg-slate-50/80 transition-all">
                                                                     <td className="px-8 py-6">
                                                                         <div className="flex items-center gap-4">
                                                                             <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 font-black text-xs">
-                                                                                {app.user?.name?.charAt(0)}
+                                                                                {(app.user?.name || '?')[0]}
                                                                             </div>
                                                                             <div>
-                                                                                <p className="font-black text-slate-900">{app.user?.name}</p>
-                                                                                <p className="text-[10px] font-black text-brand-600">{app.paymentNumber || app.user?.phone}</p>
+                                                                                <p className="font-black text-slate-900">{app.user?.name || 'Unknown'}</p>
+                                                                                <p className="text-[10px] font-black text-brand-600">{app.paymentNumber || app.user?.phone || 'No Phone'}</p>
                                                                             </div>
                                                                         </div>
                                                                     </td>
@@ -394,7 +391,7 @@ const AdminDashboard = () => {
                                                                                         </div>
                                                                                     </div>
                                                                                     <DialogFooter>
-                                                                                        <Button className="w-full h-12 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase text-xs rounded-xl" onClick={() => handlePayout(app.user._id, app.walletBalance)} disabled={processingPayout}>
+                                                                                        <Button className="w-full h-12 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase text-xs rounded-xl" onClick={() => app.user?._id && handlePayout(app.user._id, app.walletBalance)} disabled={processingPayout}>
                                                                                             {processingPayout ? <Loader2 className="animate-spin" /> : 'Confirm Transfer'}
                                                                                         </Button>
                                                                                     </DialogFooter>
@@ -418,23 +415,26 @@ const AdminDashboard = () => {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="p-0 max-h-[500px] overflow-y-auto">
-                                        {transactions.map((t: any) => (
+                                        {(transactions || []).map((t) => (
                                             <div key={t._id} className="p-6 border-b border-white/5 hover:bg-white/5">
                                                 <div className="flex justify-between items-start mb-2">
                                                     <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase ${t.type === 'payout' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
                                                         {t.type}
                                                     </span>
-                                                    <span className="text-[9px] text-white/30 font-bold">{new Date(t.createdAt).toLocaleDateString()}</span>
+                                                    <span className="text-[9px] text-white/30 font-bold">{t.createdAt ? new Date(t.createdAt).toLocaleDateString() : 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center">
                                                     <div>
-                                                        <p className="text-xs font-black">{t.type === 'payout' ? t.mentor?.name : t.user?.name}</p>
+                                                        <p className="text-xs font-black">{t.type === 'payout' ? t.mentor?.name : t.user?.name || 'Unknown'}</p>
                                                         <p className="text-[9px] font-mono text-white/40">{t.transactionId}</p>
                                                     </div>
                                                     <p className="text-lg font-black text-white">৳{t.amount}</p>
                                                 </div>
                                             </div>
                                         ))}
+                                        {(transactions || []).length === 0 && (
+                                            <div className="p-10 text-center text-white/30 text-xs font-bold uppercase">No transactions found</div>
+                                        )}
                                     </CardContent>
                                 </Card>
                             </div>
@@ -464,7 +464,7 @@ const AdminDashboard = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-50">
-                                        {applications.map((app) => (
+                                        {(applications || []).map((app) => (
                                             <tr key={app._id} className="bg-white hover:bg-brand-50/10 transition-colors">
                                                 <td className="px-6 py-4">
                                                     <p className="font-bold text-slate-900">{app.user?.name || 'Unknown'}</p>
@@ -551,9 +551,9 @@ const AdminDashboard = () => {
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold border-b pb-2">Personal Info</h3>
                                 <div className="space-y-3">
-                                    <div><label className="text-xs text-slate-500 uppercase font-bold">Name</label><p className="font-medium">{selectedApp.user.name}</p></div>
-                                    <div><label className="text-xs text-slate-500 uppercase font-bold">Email</label><p className="font-medium">{selectedApp.user.email}</p></div>
-                                    <div><label className="text-xs text-slate-500 uppercase font-bold">Phone</label><p className="font-medium">{selectedApp.user.phone || 'N/A'}</p></div>
+                                    <div><label className="text-xs text-slate-500 uppercase font-bold">Name</label><p className="font-medium">{selectedApp.user?.name || 'N/A'}</p></div>
+                                    <div><label className="text-xs text-slate-500 uppercase font-bold">Email</label><p className="font-medium">{selectedApp.user?.email || 'N/A'}</p></div>
+                                    <div><label className="text-xs text-slate-500 uppercase font-bold">Phone</label><p className="font-medium">{selectedApp.user?.phone || 'N/A'}</p></div>
                                 </div>
                             </div>
                             <div className="space-y-4">
@@ -566,7 +566,7 @@ const AdminDashboard = () => {
                             <div className="md:col-span-2 space-y-4">
                                 <h3 className="text-lg font-semibold border-b pb-2">ID Document</h3>
                                 <div className="bg-slate-100 w-full h-80 rounded-xl flex items-center justify-center border-2 border-dashed overflow-hidden">
-                                    {selectedApp.user.studentIdUrl ? (
+                                    {selectedApp.user?.studentIdUrl ? (
                                         <img src={selectedApp.user.studentIdUrl} alt="ID" className="h-full w-full object-contain" />
                                     ) : (
                                         <p className="text-slate-400">No document uploaded.</p>
@@ -578,13 +578,13 @@ const AdminDashboard = () => {
 
                     <DialogFooter className="flex gap-2">
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-                        {selectedApp && !selectedApp.user.isMentorVerified && (
+                        {selectedApp && selectedApp.user && !selectedApp.user.isMentorVerified && (
                             <>
                                 <Button variant="destructive" onClick={() => setIsDeclineConfirmOpen(true)} disabled={declining}>Decline</Button>
                                 <Button onClick={() => handleVerify(selectedApp.user._id)} className="bg-green-600 hover:bg-green-700" disabled={verifying}>Approve</Button>
                             </>
                         )}
-                        {selectedApp && selectedApp.user.isMentorVerified && (
+                        {selectedApp && selectedApp.user?.isMentorVerified && (
                             <Button variant="outline" onClick={() => handleUnverify(selectedApp.user._id)} className="text-red-600 border-red-200">Unverify</Button>
                         )}
                     </DialogFooter>
@@ -598,7 +598,7 @@ const AdminDashboard = () => {
                         <h2 className="text-xl font-black text-red-900">Delete Application?</h2>
                         <p className="text-red-700 text-sm">Are you sure? This will permanently remove their application data.</p>
                         <div className="flex flex-col gap-2 pt-4">
-                            <Button variant="destructive" className="h-12 font-black uppercase" onClick={() => selectedApp && handleDecline(selectedApp.user._id)} disabled={declining}>Yes, Delete</Button>
+                            <Button variant="destructive" className="h-12 font-black uppercase" onClick={() => selectedApp?.user?._id && handleDecline(selectedApp.user._id)} disabled={declining}>Yes, Delete</Button>
                             <Button variant="outline" className="h-12" onClick={() => setIsDeclineConfirmOpen(false)}>Cancel</Button>
                         </div>
                     </div>
