@@ -23,7 +23,8 @@ const getMentorApplications = async (req, res) => {
     try {
         // Fetch all mentor profiles and populate the user data
         const applications = await MentorProfile.find({})
-            .populate('user', 'name email isMentorVerified studentIdUrl phone role');
+            .populate('user', 'name email isMentorVerified studentIdUrl phone role')
+            .sort({ createdAt: -1 });
         
         res.json(applications);
     } catch (error) {
@@ -94,30 +95,82 @@ const unverifyMentor = async (req, res) => {
 // @access  Private/Admin
 const getPlatformStats = async (req, res) => {
     try {
-        const payments = await Payment.find({ status: 'completed' });
-        
-        // Revenue = Everything coming IN (session bookings + subscriptions)
-        const incomingPayments = payments.filter(p => p.type === 'session_booking' || p.type === 'subscription');
-        const totalRevenue = incomingPayments.reduce((acc, current) => acc + current.amount, 0);
-        
-        // Commission = What the platform keeps from session bookings
-        const totalCommission = incomingPayments.reduce((acc, current) => acc + (current.adminCommission || 0), 0);
-        
-        // Payouts = What has actually been sent to mentors (type: 'payout')
-        const outgoingPayments = payments.filter(p => p.type === 'payout');
-        const totalMentorPayout = outgoingPayments.reduce((acc, current) => acc + current.amount, 0);
+        // Use aggregation pipeline for maximum performance
+        const stats = await Payment.aggregate([
+            { $match: { status: 'completed' } },
+            {
+                $group: {
+                    _id: null,
+                    totalRevenue: {
+                        $sum: {
+                            $cond: [
+                                { $in: ["$type", ["session_booking", "subscription"]] },
+                                "$amount",
+                                0
+                            ]
+                        }
+                    },
+                    totalCommission: {
+                        $sum: {
+                            $cond: [
+                                { $in: ["$type", ["session_booking", "subscription"]] },
+                                { $ifNull: ["$adminCommission", 0] },
+                                0
+                            ]
+                        }
+                    },
+                    totalMentorPayout: {
+                        $sum: {
+                            $cond: [
+                                { $eq: ["$type", "payout"] },
+                                "$amount",
+                                0
+                            ]
+                        }
+                    },
+                    transactionCount: {
+                        $sum: {
+                            $cond: [
+                                { $in: ["$type", ["session_booking", "subscription"]] },
+                                1,
+                                0
+                            ]
+                        }
+                    },
+                    payoutCount: {
+                        $sum: {
+                            $cond: [
+                                { $eq: ["$type", "payout"] },
+                                1,
+                                0
+                            ]
+                        }
+                    }
+                }
+            }
+        ]);
 
-        // Pending Balance = Sum of all mentor wallet balances
-        const mentors = await MentorProfile.find({});
-        const totalPendingBalance = mentors.reduce((acc, m) => acc + (m.walletBalance || 0), 0);
+        const result = stats[0] || {
+            totalRevenue: 0,
+            totalCommission: 0,
+            totalMentorPayout: 0,
+            transactionCount: 0,
+            payoutCount: 0
+        };
+
+        // Pending Balance still needs to fetch mentors but we can use sum
+        const mentorStats = await MentorProfile.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalPendingBalance: { $sum: { $ifNull: ["$walletBalance", 0] } }
+                }
+            }
+        ]);
 
         res.json({
-            totalRevenue,
-            totalCommission,
-            totalMentorPayout,
-            totalPendingBalance,
-            transactionCount: incomingPayments.length,
-            payoutCount: outgoingPayments.length
+            ...result,
+            totalPendingBalance: mentorStats[0]?.totalPendingBalance || 0
         });
     } catch (error) {
         console.error("getPlatformStats Error:", error);
