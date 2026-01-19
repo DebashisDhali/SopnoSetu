@@ -7,6 +7,9 @@ import { Input } from '@/components/ui/input';
 import api from '@/services/api';
 import { Calendar, Video, Clock, MessageCircle, Edit2, Check, X, Plus, Trash2, Upload, CheckCircle2, CircleDollarSign } from 'lucide-react';
 import { toast } from 'sonner';
+import { FileUpload } from '@/components/ui/file-upload';
+import { StatusAlert } from '@/components/ui/status-alert';
+import { getErrorMessage } from '@/services/api';
 
 interface MentorDashboardProps {
     user: any;
@@ -109,8 +112,8 @@ const MentorDashboard = ({ user }: MentorDashboardProps) => {
             await api.put(`/sessions/${id}`, { status });
             toast.success(`Session ${status} successfully`);
             fetchSessions();
-        } catch (error) {
-            toast.error("Failed to update session");
+        } catch (error: any) {
+            toast.error(getErrorMessage(error));
         }
     };
 
@@ -124,8 +127,8 @@ const MentorDashboard = ({ user }: MentorDashboardProps) => {
             });
             toast.success("Profile updated successfully!");
             setIsEditing(false);
-        } catch (error) {
-            toast.error("Failed to update profile");
+        } catch (error: any) {
+            toast.error(getErrorMessage(error));
         }
     }
 
@@ -147,24 +150,19 @@ const MentorDashboard = ({ user }: MentorDashboardProps) => {
         setProfileData({ ...profileData, availability: newSlots });
     };
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
+    const handleFileUploadWrapper = async (file: File, field: string) => {
         const formData = new FormData();
         formData.append('file', file);
-
         try {
             setUploading(field);
             const { data } = await api.post('/upload', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            setProfileData({ ...profileData, [field]: data.url });
-            toast.success("File uploaded successfully");
+            return data.url;
         } catch (error: any) {
             const message = error.response?.data?.message || "Upload failed";
             toast.error(message);
-            console.error(error);
+            throw error;
         } finally {
             setUploading(null);
         }
@@ -281,26 +279,24 @@ const MentorDashboard = ({ user }: MentorDashboardProps) => {
                                     <p className="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wider">This link will be shown to students for their sessions.</p>
                                 </div>
                                 <div className="md:col-span-1">
-                                    <label className="text-sm font-medium text-slate-700">Profile Picture</label>
-                                    <div className="mt-1 flex items-center gap-2">
-                                        <label className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-brand-300 rounded-lg bg-white text-brand-600 cursor-pointer hover:bg-brand-50 transition-colors h-10 overflow-hidden text-xs">
-                                            <Upload size={14} />
-                                            {uploading === 'profilePic' ? 'Uploading...' : 'Choose Photo'}
-                                            <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'profilePic')} accept="image/*" />
-                                        </label>
-                                        {profileData.profilePic && <Check size={16} className="text-green-500" />}
-                                    </div>
+                                    <FileUpload
+                                        label="Profile Picture"
+                                        value={profileData.profilePic}
+                                        onChange={(url) => setProfileData({ ...profileData, profilePic: url })}
+                                        onUpload={(file) => handleFileUploadWrapper(file, 'profilePic')}
+                                        uploading={uploading === 'profilePic'}
+                                        accept="image/*"
+                                    />
                                 </div>
                                 <div className="md:col-span-1">
-                                    <label className="text-sm font-medium text-slate-700">Verification (Student ID) <span className="text-red-500">*</span></label>
-                                    <div className="mt-1 flex items-center gap-2">
-                                        <label className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-brand-300 rounded-lg bg-white text-brand-600 cursor-pointer hover:bg-brand-50 transition-colors h-10 overflow-hidden text-xs">
-                                            <Upload size={14} />
-                                            {uploading === 'studentIdUrl' ? 'Uploading...' : 'Upload ID'}
-                                            <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'studentIdUrl')} accept="image/*,application/pdf" />
-                                        </label>
-                                        {profileData.studentIdUrl && <Check size={16} className="text-green-500" />}
-                                    </div>
+                                    <FileUpload
+                                        label="Verification (Student ID)"
+                                        value={profileData.studentIdUrl}
+                                        onChange={(url) => setProfileData({ ...profileData, studentIdUrl: url })}
+                                        onUpload={(file) => handleFileUploadWrapper(file, 'studentIdUrl')}
+                                        uploading={uploading === 'studentIdUrl'}
+                                        accept="image/*,application/pdf"
+                                    />
                                 </div>
                                 <div className="md:col-span-1">
                                     <label className="text-sm font-medium text-slate-700">Select Payment Methods</label>
@@ -408,15 +404,33 @@ const MentorDashboard = ({ user }: MentorDashboardProps) => {
             )}
 
             {!user.isMentorVerified && (
-                <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg shadow-sm">
-                    <div className="flex">
-                        <div className="ml-3">
-                            <p className="text-sm text-amber-800 font-medium">
-                                Your profile is pending verification. You will be visible to student searches once an admin approves your profile.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                <StatusAlert
+                    type="warning"
+                    title="Account Verification Pending"
+                    message="Your mentor profile is currently being reviewed by our team. You won't appear in student search results until you are verified. This usually takes 24-48 hours."
+                    actionLabel="Need help? Contact Admin"
+                    onAction={() => router.push('/dashboard?view=messages&with=admin')}
+                />
+            )}
+
+            {profileData.availability.length === 0 && (
+                <StatusAlert
+                    type="info"
+                    title="No Availability Added"
+                    message="You haven't added any time slots yet. Students won't be able to book sessions with you until you set your available hours."
+                    actionLabel="Set Availability Now"
+                    onAction={() => setIsEditing(true)}
+                />
+            )}
+
+            {!profileData.meetingLink && (
+                <StatusAlert
+                    type="error"
+                    title="Action Required: Meeting Link Missing"
+                    message="You must set a Google Meet or Zoom link in your profile before you can accept any sessions. Students need this to join the call."
+                    actionLabel="Update Meeting Link"
+                    onAction={() => setIsEditing(true)}
+                />
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

@@ -7,6 +7,9 @@ import api from '@/services/api';
 import { Calendar, Video, Clock, MessageCircle, Edit2, User as UserIcon, Save, Upload, Check, X, Star } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { FileUpload } from '@/components/ui/file-upload';
+import { StatusAlert } from '@/components/ui/status-alert';
+import { getErrorMessage } from '@/services/api';
 
 interface Session {
     _id: string;
@@ -72,23 +75,19 @@ const CandidateDashboard = () => {
         fetchUser();
     }, []);
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
+    const handleFileUploadWrapper = async (file: File) => {
         const formData = new FormData();
         formData.append('file', file);
-
         try {
             setUploading(true);
             const { data } = await api.post('/upload', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            setProfileData({ ...profileData, profilePic: data.url });
-            toast.success("Photo uploaded successfully");
+            return data.url;
         } catch (error: any) {
             const message = error.response?.data?.message || "Upload failed";
             toast.error(message);
+            throw error;
         } finally {
             setUploading(false);
         }
@@ -101,8 +100,8 @@ const CandidateDashboard = () => {
             toast.success("Profile updated successfully!");
             setIsEditing(false);
             fetchUser();
-        } catch (error) {
-            toast.error("Failed to update profile");
+        } catch (error: any) {
+            toast.error(getErrorMessage(error));
         }
     };
 
@@ -131,6 +130,25 @@ const CandidateDashboard = () => {
 
     return (
         <div className="space-y-8 pb-12">
+            {user?.subscriptionPlan === 'free' && (
+                <StatusAlert
+                    type="help"
+                    title="Unlock Your Potential"
+                    message="You are currently on the Free plan. Upgrade to a Pro subscription to select Primary Mentors and book sessions without extra payment fees."
+                    actionLabel="View Pricing Plans"
+                    onAction={() => router.push('/pricing')}
+                />
+            )}
+
+            {sessions.length === 0 && !loading && (
+                <StatusAlert
+                    type="info"
+                    title="Start Your Journey"
+                    message="You haven't booked any sessions yet. Find the perfect mentor from your target university and start your preparation today!"
+                    actionLabel="Browse Mentors"
+                    onAction={() => router.push('/mentors')}
+                />
+            )}
             {/* Header with Profile Info */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100 gap-4">
                 <div className="flex items-center gap-4">
@@ -206,15 +224,14 @@ const CandidateDashboard = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium text-slate-700">Profile Picture</label>
-                                    <div className="mt-1 flex items-center gap-2 h-10">
-                                        <label className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-green-300 rounded-lg bg-white text-green-600 cursor-pointer hover:bg-green-50 transition-colors h-full text-xs overflow-hidden">
-                                            <Upload size={14} />
-                                            {uploading ? 'Uploading...' : profileData.profilePic ? 'Change Photo' : 'Upload Photo'}
-                                            <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*" />
-                                        </label>
-                                        {profileData.profilePic && <Check size={16} className="text-green-500" />}
-                                    </div>
+                                    <FileUpload
+                                        label="Profile Picture"
+                                        value={profileData.profilePic}
+                                        onChange={(url) => setProfileData({ ...profileData, profilePic: url })}
+                                        onUpload={handleFileUploadWrapper}
+                                        uploading={uploading}
+                                        accept="image/*"
+                                    />
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="text-sm font-medium text-slate-700">Bio</label>

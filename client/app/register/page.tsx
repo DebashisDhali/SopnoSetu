@@ -7,11 +7,19 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Loader2, Upload, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { FileUpload } from '@/components/ui/file-upload';
 
 function RegisterForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const initialRole = searchParams.get('role') || 'candidate';
+
+    React.useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            router.push('/dashboard');
+        }
+    }, [router]);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -27,24 +35,19 @@ function RegisterForm() {
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState('');
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
+    const handleFileUploadWrapper = async (file: File) => {
         const formData = new FormData();
         formData.append('file', file);
-
         try {
             setUploading(true);
             const { data } = await api.post('/upload/public', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            setFormData(prev => ({ ...prev, studentIdUrl: data.url }));
-            toast.success("ID Card uploaded successfully");
+            return data.url;
         } catch (error: any) {
-            console.error("Upload error:", error);
             const message = error.response?.data?.message || "Upload failed. Please try again.";
             setError(message);
+            throw error;
         } finally {
             setUploading(false);
         }
@@ -201,24 +204,14 @@ function RegisterForm() {
 
                                 {/* ID Card Upload - Full width in grid */}
                                 <div className="space-y-2 md:col-span-2">
-                                    <label className="text-sm font-semibold text-slate-700">Student ID Card (Upload for Verification) <span className="text-red-500">*</span></label>
-                                    <div className="flex items-center gap-3">
-                                        <label className="flex-1 flex items-center justify-center gap-3 px-4 py-3 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50 text-emerald-600 cursor-pointer hover:bg-emerald-50 hover:border-emerald-200 transition-all group">
-                                            <Upload size={20} className="group-hover:scale-110 transition-transform" />
-                                            <div className="text-left">
-                                                <p className="text-sm font-bold">
-                                                    {uploading ? 'Uploading...' : formData.studentIdUrl ? 'ID Uploaded Successfully' : 'Choose Photo from Device'}
-                                                </p>
-                                                <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">JPG, PNG or PDF (Max 5MB)</p>
-                                            </div>
-                                            <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*" />
-                                        </label>
-                                        {formData.studentIdUrl && (
-                                            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600 animate-in zoom-in">
-                                                <Check size={24} />
-                                            </div>
-                                        )}
-                                    </div>
+                                    <FileUpload
+                                        label="Student ID Card (Upload for Verification)"
+                                        value={formData.studentIdUrl}
+                                        onChange={(url) => setFormData({ ...formData, studentIdUrl: url })}
+                                        onUpload={handleFileUploadWrapper}
+                                        uploading={uploading}
+                                        accept="image/*,application/pdf"
+                                    />
                                 </div>
                             </>
                         )}

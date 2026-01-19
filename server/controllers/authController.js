@@ -26,7 +26,10 @@ const registerUser = async (req, res) => {
         const userExists = await User.findOne({ email });
 
         if (userExists) {
-            return res.status(400).json({ message: 'User already exists' });
+            const roleName = userExists.role === 'mentor' ? 'a Mentor' : 'a Student';
+            return res.status(400).json({ 
+                message: `This email is already registered as ${roleName}. You cannot use the same email for a new account.` 
+            });
         }
 
         // Create user

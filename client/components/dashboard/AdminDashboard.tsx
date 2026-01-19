@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Loader2, CheckCircle, XCircle, Eye, ShieldCheck, Mail, Building, FileText, Ban, History, Activity, TrendingUp, Wallet, CreditCard, ArrowUpRight, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { StatusAlert } from '@/components/ui/status-alert';
+import { getErrorMessage } from '@/services/api';
 
 interface MentorApplication {
     _id: string; // This is the MentorProfile ID
@@ -76,9 +78,9 @@ const AdminDashboard = () => {
             setYearlyMentors(settingsRes.data.yearlyMentorLimit?.toString() || '5');
             setMonthlySessions(settingsRes.data.monthlySessionLimit?.toString() || '10');
             setYearlySessions(settingsRes.data.yearlySessionLimit?.toString() || '100');
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to fetch admin data", error);
-            toast.error("Failed to load dashboard data");
+            toast.error(getErrorMessage(error));
         } finally {
             setLoading(false);
         }
@@ -104,8 +106,8 @@ const AdminDashboard = () => {
             });
             toast.success("Settings updated successfully");
             fetchData();
-        } catch (e) {
-            toast.error("Failed to update settings");
+        } catch (error: any) {
+            toast.error(getErrorMessage(error));
         } finally {
             setSavingSettings(false);
         }

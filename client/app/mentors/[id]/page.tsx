@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, Star, Clock, Video, CheckCircle, Wallet, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { StatusAlert } from '@/components/ui/status-alert';
+import { getErrorMessage } from '@/services/api';
 
 interface Mentor {
     _id: string;
@@ -243,7 +245,7 @@ export default function MentorDetailsPage() {
             setShowPaymentModal(false);
             router.push('/dashboard');
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Booking failed");
+            toast.error(getErrorMessage(error));
         } finally {
             setProcessing(false);
         }
@@ -440,7 +442,7 @@ export default function MentorDetailsPage() {
                                         <div className="bg-blue-100 p-2 rounded-full text-blue-600"><CheckCircle size={16} /></div>
                                         <div>
                                             <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wide">Primary Mentor</p>
-                                            <p className="text-xs text-blue-600">You've selected this mentor.</p>
+                                            <p className="text-xs text-blue-600">You've selected this mentor. You can book sessions for free.</p>
                                         </div>
                                     </div>
                                 </div>
