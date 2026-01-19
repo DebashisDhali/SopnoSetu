@@ -1,24 +1,20 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/services/api';
 import CandidateDashboard from '@/components/dashboard/CandidateDashboard';
 import MentorDashboard from '@/components/dashboard/MentorDashboard';
 import AdminDashboard from '@/components/dashboard/AdminDashboard';
-import { Loader2 } from 'lucide-react';
-
-import { LayoutDashboard, MessageSquare, Bell, User as UserIcon } from 'lucide-react';
+import { Loader2, LayoutDashboard, MessageSquare } from 'lucide-react';
 import ChatSection from '@/components/chat/ChatSection';
-import { useSearchParams } from 'next/navigation';
 
-export default function DashboardPage() {
+function DashboardContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     const activeView = searchParams.get('view') || 'overview';
-
     const [unreadCount, setUnreadCount] = useState(0);
 
     const fetchUnread = async () => {
@@ -128,3 +124,19 @@ export default function DashboardPage() {
         </div>
     );
 }
+
+export default function DashboardPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <div className="text-center">
+                    <Loader2 className="h-10 w-10 animate-spin text-brand-600 mx-auto mb-4" />
+                    <p className="text-slate-500 font-medium tracking-tight">Loading Dashboard...</p>
+                </div>
+            </div>
+        }>
+            <DashboardContent />
+        </Suspense>
+    );
+}
+
