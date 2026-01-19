@@ -76,7 +76,7 @@ function DashboardContent() {
                             </h1>
                             <p className="text-sm text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
                                 <span className={`w-2 h-2 rounded-full ${user.role === 'mentor' ? 'bg-blue-500' : 'bg-green-500'}`}></span>
-                                {user.role === 'mentor' ? 'Verified Mentor' : 'Student Dashboard'}
+                                {user.role === 'mentor' ? 'Verified Mentor' : user.role === 'admin' ? 'System Administrator' : 'Student Dashboard'}
                             </p>
                         </div>
 
