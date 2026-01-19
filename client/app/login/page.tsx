@@ -30,7 +30,9 @@ export default function LoginPage() {
             window.dispatchEvent(new Event('auth-change'));
             router.push('/dashboard');
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Login failed. Please try again.');
+            console.error('Login Error details:', err);
+            const errorMessage = err.response?.data?.message || err.message || 'Login failed. Please check your connection and try again.';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
