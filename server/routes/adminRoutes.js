@@ -10,11 +10,13 @@ const {
     getTransactions,
     processPayout,
     updateSettings,
-    getSettings 
+    getSettings,
+    getAllSessions
 } = require('../controllers/adminController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 router.get('/users', protect, admin, getUsers);
+router.get('/sessions', protect, admin, getAllSessions);
 router.get('/mentor-applications', protect, admin, getMentorApplications);
 router.put('/verify-mentor/:id', protect, admin, verifyMentor);
 router.put('/unverify-mentor/:id', protect, admin, unverifyMentor);

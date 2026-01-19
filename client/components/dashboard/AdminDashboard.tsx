@@ -4,7 +4,7 @@ import api from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Loader2, Eye, CheckCircle, XCircle, Settings, TrendingUp, History, Wallet, Search } from 'lucide-react';
+import { Loader2, Eye, CheckCircle, XCircle, Settings, TrendingUp, History, Wallet, Search, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MentorApplication {
@@ -28,8 +28,9 @@ export default function AdminDashboard() {
     const [applications, setApplications] = useState<MentorApplication[]>([]);
     const [stats, setStats] = useState<any>(null);
     const [transactions, setTransactions] = useState<any[]>([]);
+    const [sessions, setSessions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'applications' | 'stats' | 'settings'>('applications');
+    const [activeTab, setActiveTab] = useState<'applications' | 'stats' | 'settings' | 'sessions'>('applications');
     const [selectedApp, setSelectedApp] = useState<MentorApplication | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [verifying, setVerifying] = useState(false);
@@ -45,15 +46,17 @@ export default function AdminDashboard() {
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const [appsRes, statsRes, settingsRes, transRes] = await Promise.all([
+            const [appsRes, statsRes, settingsRes, transRes, sessRes] = await Promise.all([
                 api.get('/admin/mentor-applications'),
                 api.get('/admin/stats'),
                 api.get('/admin/settings'),
-                api.get('/admin/transactions')
+                api.get('/admin/transactions'),
+                api.get('/admin/sessions')
             ]);
             setApplications(appsRes.data);
             setStats(statsRes.data);
             setTransactions(transRes.data);
+            setSessions(sessRes.data);
 
             if (settingsRes.data) {
                 setAdminNumber(settingsRes.data.adminPaymentNumber || '');
@@ -139,6 +142,12 @@ export default function AdminDashboard() {
                         Applications
                     </button>
                     <button
+                        onClick={() => setActiveTab('sessions')}
+                        className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${activeTab === 'sessions' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                        Sessions
+                    </button>
+                    <button
                         onClick={() => setActiveTab('stats')}
                         className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${activeTab === 'stats' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
                     >
@@ -213,6 +222,79 @@ export default function AdminDashboard() {
                                                 <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
                                                     No applications found matching your search.
                                                 </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+
+            {activeTab === 'sessions' && (
+                <div className="space-y-4">
+                    <div className="relative max-w-sm">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                        <input
+                            type="text"
+                            placeholder="Search sessions..."
+                            className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <Card className="border-slate-200">
+                        <CardHeader>
+                            <CardTitle>All Sessions</CardTitle>
+                            <CardDescription>View and manage all booked sessions.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="border-b text-slate-500">
+                                            <th className="px-4 py-3 text-left">Date</th>
+                                            <th className="px-4 py-3 text-left">Mentor</th>
+                                            <th className="px-4 py-3 text-left">Candidate</th>
+                                            <th className="px-4 py-3 text-center">Status</th>
+                                            <th className="px-4 py-3 text-right">Fee</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {sessions.filter(s =>
+                                            (s.mentor?.name && s.mentor.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                                            (s.candidate?.name && s.candidate.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                                        ).length > 0 ? (
+                                            sessions.filter(s =>
+                                                (s.mentor?.name && s.mentor.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                                                (s.candidate?.name && s.candidate.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                                            ).map((session) => (
+                                                <tr key={session._id} className="hover:bg-slate-50/50 transition-colors">
+                                                    <td className="px-4 py-4 text-slate-600">
+                                                        <div className="flex items-center">
+                                                            <Calendar size={14} className="mr-2 text-slate-400" />
+                                                            {new Date(session.startTime).toLocaleDateString()}
+                                                        </div>
+                                                        <div className="text-xs text-slate-400 ml-6">{new Date(session.startTime).toLocaleTimeString()}</div>
+                                                    </td>
+                                                    <td className="px-4 py-4 font-semibold text-slate-900">{session.mentor?.name}</td>
+                                                    <td className="px-4 py-4 text-slate-700">{session.candidate?.name}</td>
+                                                    <td className="px-4 py-4 text-center">
+                                                        <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${session.status === 'completed' ? 'bg-green-50 text-green-700' :
+                                                            session.status === 'cancelled' ? 'bg-red-50 text-red-700' :
+                                                                session.status === 'accepted' ? 'bg-blue-50 text-blue-700' :
+                                                                    'bg-amber-50 text-amber-700'
+                                                            }`}>
+                                                            {session.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-4 text-right font-mono font-medium">৳{session.amount}</td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={5} className="px-4 py-8 text-center text-slate-500">No sessions found.</td>
                                             </tr>
                                         )}
                                     </tbody>

@@ -2,6 +2,24 @@ const User = require('../models/User');
 const MentorProfile = require('../models/MentorProfile');
 const Payment = require('../models/Payment');
 const Settings = require('../models/Settings');
+const Session = require('../models/Session');
+
+// @desc    Get all sessions (for admin)
+// @route   GET /api/admin/sessions
+// @access  Private/Admin
+const getAllSessions = async (req, res) => {
+    try {
+        const sessions = await Session.find({})
+            .populate('mentor', 'name email')
+            .populate('candidate', 'name email')
+            .sort({ startTime: -1 })
+            .limit(100);
+        res.json(sessions);
+    } catch (error) {
+        console.error("getAllSessions Error:", error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
 
 // @desc    Get all users (or filter by role)
 // @route   GET /api/admin/users
@@ -369,5 +387,6 @@ module.exports = {
     getTransactions,
     processPayout,
     updateSettings,
-    getSettings
+    getSettings,
+    getAllSessions
 };
