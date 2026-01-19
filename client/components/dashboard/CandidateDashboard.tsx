@@ -256,34 +256,37 @@ const CandidateDashboard = () => {
                                             <div className="text-right">
                                                 <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold mb-2 ${session.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                                                     session.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                                                        'bg-slate-100 text-slate-800'
+                                                        session.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                                            'bg-slate-100 text-slate-800'
                                                     }`}>
                                                     {session.status.toUpperCase()}
                                                 </span>
-                                                {session.status === 'accepted' && (
-                                                    <div className="flex gap-2 justify-end">
-                                                        <Button size="sm" variant="outline" className="flex items-center text-xs h-8" onClick={() => router.push(`/dashboard?view=messages&with=${session.mentor._id}`)}>
-                                                            <MessageCircle size={12} className="mr-1" /> Chat
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            className="flex items-center text-xs h-8 bg-brand-50 text-brand-700 border-brand-200 hover:bg-brand-100"
-                                                            onClick={() => {
-                                                                // Prioritize mentor's current profile link over the saved session link
-                                                                const finalLink = (session as any).mentorProfileLink || session.meetingLink;
-
-                                                                if (finalLink && !finalLink.includes('/ss-')) {
-                                                                    const url = finalLink.startsWith('http') ? finalLink : `https://${finalLink}`;
-                                                                    window.open(url, '_blank');
-                                                                } else {
-                                                                    toast.error("Mentor hasn't set a valid meeting link yet.");
-                                                                }
-                                                            }}
-                                                            disabled={!session.meetingLink && !(session as any).mentorProfileLink}
-                                                        >
-                                                            <Video size={12} className="mr-1" /> Join Call
-                                                        </Button>
+                                                <div className="flex gap-2 justify-end">
+                                                    {session.status === 'accepted' && (
+                                                        <>
+                                                            <Button size="sm" variant="outline" className="flex items-center text-xs h-8" onClick={() => router.push(`/dashboard?view=messages&with=${session.mentor._id}`)}>
+                                                                <MessageCircle size={12} className="mr-1" /> Chat
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="flex items-center text-xs h-8 bg-brand-50 text-brand-700 border-brand-200 hover:bg-brand-100"
+                                                                onClick={() => {
+                                                                    const finalLink = (session as any).mentorProfileLink || session.meetingLink;
+                                                                    if (finalLink && !finalLink.includes('/ss-')) {
+                                                                        const url = finalLink.startsWith('http') ? finalLink : `https://${finalLink}`;
+                                                                        window.open(url, '_blank');
+                                                                    } else {
+                                                                        toast.error("Mentor hasn't set a valid meeting link yet.");
+                                                                    }
+                                                                }}
+                                                                disabled={!session.meetingLink && !(session as any).mentorProfileLink}
+                                                            >
+                                                                <Video size={12} className="mr-1" /> Join Call
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                    {session.status === 'completed' && (
                                                         <Button
                                                             size="sm"
                                                             variant="outline"
@@ -293,15 +296,15 @@ const CandidateDashboard = () => {
                                                                 setShowReviewModal(true);
                                                             }}
                                                         >
-                                                            <Star size={12} className="mr-1" /> Rate
+                                                            <Star size={12} className="mr-1" /> Rate Experience
                                                         </Button>
-                                                    </div>
-                                                )}
-                                                {session.status === 'pending' && (
-                                                    <Button size="sm" variant="ghost" className="text-xs h-8 text-brand-600" onClick={() => router.push(`/dashboard?view=messages&with=${session.mentor._id}`)}>
-                                                        <MessageCircle size={12} className="mr-1" /> Message
-                                                    </Button>
-                                                )}
+                                                    )}
+                                                    {session.status === 'pending' && (
+                                                        <Button size="sm" variant="ghost" className="text-xs h-8 text-brand-600" onClick={() => router.push(`/dashboard?view=messages&with=${session.mentor._id}`)}>
+                                                            <MessageCircle size={12} className="mr-1" /> Message
+                                                        </Button>
+                                                    )}
+                                                </div>
                                             </div>
                                         </li>
                                     ))}

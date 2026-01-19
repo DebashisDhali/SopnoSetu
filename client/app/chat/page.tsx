@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Loader2, Send, User, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
-const socket = io('http://localhost:5000');
+const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000');
 
 function ChatContent() {
     const searchParams = useSearchParams();
@@ -62,7 +62,7 @@ function ChatContent() {
 
     useEffect(() => {
         socket.on('receive_message', (data) => {
-            if (data.senderId === withUserId) {
+            if (data.senderId === withUserId && withUserId) {
                 setMessages((prev) => [...prev, data]);
                 markRead(withUserId);
             }

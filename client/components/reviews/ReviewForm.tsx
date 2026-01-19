@@ -34,7 +34,7 @@ export default function ReviewForm({ mentorId, sessionId, onReviewSubmitted }: R
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/reviews', {
+            const response = await fetch('/api/reviews', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -89,8 +89,8 @@ export default function ReviewForm({ mentorId, sessionId, onReviewSubmitted }: R
                         >
                             <Star
                                 className={`w-8 h-8 ${star <= (hoveredRating || rating)
-                                        ? 'fill-yellow-400 text-yellow-400'
-                                        : 'text-gray-300'
+                                    ? 'fill-yellow-400 text-yellow-400'
+                                    : 'text-gray-300'
                                     }`}
                             />
                         </button>

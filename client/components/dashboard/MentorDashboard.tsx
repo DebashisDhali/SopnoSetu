@@ -536,24 +536,34 @@ const MentorDashboard = ({ user }: MentorDashboardProps) => {
                                         <div className="text-sm text-slate-600 mb-3 flex items-center">
                                             <Clock size={14} className="mr-2" /> {new Date(session.startTime).toLocaleString()}
                                         </div>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="w-full bg-brand-600 text-white hover:bg-brand-700 border-none shadow-md"
-                                            onClick={() => {
-                                                const finalLink = profileData.meetingLink || session.meetingLink;
-                                                if (finalLink && !finalLink.includes('/ss-')) {
-                                                    const url = finalLink.startsWith('http') ? finalLink : `https://${finalLink}`;
-                                                    window.open(url, '_blank');
-                                                } else if (profileData.meetingLink) {
-                                                    const url = profileData.meetingLink.startsWith('http') ? profileData.meetingLink : `https://${profileData.meetingLink}`;
-                                                    window.open(url, '_blank');
-                                                }
-                                            }}
-                                            disabled={!session.meetingLink && !profileData.meetingLink}
-                                        >
-                                            <Video size={14} className="mr-2" /> Join Call
-                                        </Button>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="flex-1 bg-brand-600 text-white hover:bg-brand-700 border-none shadow-md"
+                                                onClick={() => {
+                                                    const finalLink = profileData.meetingLink || session.meetingLink;
+                                                    if (finalLink && !finalLink.includes('/ss-')) {
+                                                        const url = finalLink.startsWith('http') ? finalLink : `https://${finalLink}`;
+                                                        window.open(url, '_blank');
+                                                    } else if (profileData.meetingLink) {
+                                                        const url = profileData.meetingLink.startsWith('http') ? profileData.meetingLink : `https://${profileData.meetingLink}`;
+                                                        window.open(url, '_blank');
+                                                    }
+                                                }}
+                                                disabled={!session.meetingLink && !profileData.meetingLink}
+                                            >
+                                                <Video size={14} className="mr-2" /> Join Call
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="flex-1 border-brand-200 text-brand-700 hover:bg-brand-50"
+                                                onClick={() => handleStatusUpdate(session._id, 'completed')}
+                                            >
+                                                <CheckCircle2 size={14} className="mr-2 text-brand-600" /> Complete
+                                            </Button>
+                                        </div>
                                     </li>
                                 ))}
                             </ul>

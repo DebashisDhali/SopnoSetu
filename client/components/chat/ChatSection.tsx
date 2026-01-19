@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Loader2, Send, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
-const socket = io('http://localhost:5000');
+const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000');
 
 export default function ChatSection() {
     const searchParams = useSearchParams();

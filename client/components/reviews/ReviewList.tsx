@@ -34,7 +34,7 @@ export default function ReviewList({ mentorId, refreshTrigger }: ReviewListProps
         setError('');
 
         try {
-            const response = await fetch(`http://localhost:5000/api/reviews/mentor/${mentorId}`);
+            const response = await fetch(`/api/reviews/mentor/${mentorId}`);
 
             if (!response.ok) {
                 throw new Error('Failed to fetch reviews');
@@ -56,8 +56,8 @@ export default function ReviewList({ mentorId, refreshTrigger }: ReviewListProps
                     <Star
                         key={star}
                         className={`w-4 h-4 ${star <= rating
-                                ? 'fill-yellow-400 text-yellow-400'
-                                : 'text-gray-300'
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : 'text-gray-300'
                             }`}
                     />
                 ))}
