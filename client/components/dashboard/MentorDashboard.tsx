@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import api from '@/services/api';
-import { Calendar, Video, Clock, MessageCircle, Edit2, Check, X, Plus, Trash2, Upload, CheckCircle2, CircleDollarSign } from 'lucide-react';
+import { Calendar, Video, Clock, MessageCircle, Edit2, Check, X, Plus, Trash2, Upload, CheckCircle2, CircleDollarSign, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { FileUpload } from '@/components/ui/file-upload';
 import { StatusAlert } from '@/components/ui/status-alert';
@@ -58,6 +58,8 @@ const MentorDashboard = ({ user }: MentorDashboardProps) => {
 
     // Temp state for adding new slot
     const [newSlot, setNewSlot] = useState({ day: 'Saturday', startTime: '', endTime: '' });
+    const [requestsSearch, setRequestsSearch] = useState('');
+    const [upcomingSearch, setUpcomingSearch] = useState('');
 
     const [walletBalance, setWalletBalance] = useState(0);
 
@@ -497,37 +499,50 @@ const MentorDashboard = ({ user }: MentorDashboardProps) => {
                         {pendingSessions.length === 0 ? (
                             <p className="text-slate-500 text-sm">No pending requests.</p>
                         ) : (
-                            <ul className="space-y-4">
-                                {pendingSessions.map(session => (
-                                    <li key={session._id} className="border p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div>
-                                                <h4 className="font-bold text-slate-900">{session.candidate.name}</h4>
-                                                <p className="text-xs text-slate-500">{session.candidate.email}</p>
+                            <div className="space-y-4">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search requests..."
+                                        className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                        value={requestsSearch}
+                                        onChange={(e) => setRequestsSearch(e.target.value)}
+                                    />
+                                </div>
+                                <ul className="space-y-4">
+                                    {pendingSessions.filter(s => s.candidate.name.toLowerCase().includes(requestsSearch.toLowerCase())).map(session => (
+                                        <li key={session._id} className="border p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <h4 className="font-bold text-slate-900">{session.candidate.name}</h4>
+                                                    <p className="text-xs text-slate-500">{session.candidate.email}</p>
+                                                </div>
+                                                <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded font-bold">
+                                                    {session.paymentStatus === 'paid' ? 'PAID' : 'UNPAID'}
+                                                </span>
                                             </div>
-                                            <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded font-bold">
-                                                {session.paymentStatus === 'paid' ? 'PAID' : 'UNPAID'}
-                                            </span>
-                                        </div>
-                                        <div className="text-sm text-slate-600 mb-4 space-y-1">
-                                            <div className="flex items-center"><Clock size={14} className="mr-2" /> {new Date(session.startTime).toLocaleString()}</div>
-                                            <div className="italic text-slate-500">"{session.notes}"</div>
-                                            <div className="font-bold text-brand-600">৳{session.amount}</div>
-                                        </div>
-                                        <div className="flex space-x-2">
-                                            <Button size="sm" onClick={() => handleStatusUpdate(session._id, 'accepted')} className="flex-1 bg-brand-600 hover:bg-brand-700">
-                                                <Check size={16} className="mr-1" /> Accept
-                                            </Button>
-                                            <Button size="sm" variant="outline" onClick={() => router.push(`/dashboard?view=messages&with=${session.candidate._id}`)} className="flex-1">
-                                                <MessageCircle size={16} className="mr-1" /> Message
-                                            </Button>
-                                            <Button size="sm" variant="destructive" onClick={() => handleStatusUpdate(session._id, 'cancelled')} className="flex-1 hover:bg-red-600">
-                                                <X size={16} className="mr-1" /> Reject
-                                            </Button>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
+                                            <div className="text-sm text-slate-600 mb-4 space-y-1">
+                                                <div className="flex items-center"><Clock size={14} className="mr-2" /> {new Date(session.startTime).toLocaleString()}</div>
+                                                <div className="italic text-slate-500">"{session.notes}"</div>
+                                                <div className="font-bold text-brand-600">৳{session.amount}</div>
+                                            </div>
+                                            <div className="flex space-x-2">
+                                                <Button size="sm" onClick={() => handleStatusUpdate(session._id, 'accepted')} className="flex-1 bg-brand-600 hover:bg-brand-700">
+                                                    <Check size={16} className="mr-1" /> Accept
+                                                </Button>
+                                                <Button size="sm" variant="outline" onClick={() => router.push(`/dashboard?view=messages&with=${session.candidate._id}`)} className="flex-1">
+                                                    <MessageCircle size={16} className="mr-1" /> Message
+                                                </Button>
+                                                <Button size="sm" variant="destructive" onClick={() => handleStatusUpdate(session._id, 'cancelled')} className="flex-1 hover:bg-red-600">
+                                                    <X size={16} className="mr-1" /> Reject
+                                                </Button>
+                                            </div>
+                                        </li>
+                                    ))}
+
+                                </ul>
+                            </div>
                         )}
                     </CardContent>
                 </Card>
@@ -541,52 +556,65 @@ const MentorDashboard = ({ user }: MentorDashboardProps) => {
                         {upcomingSessions.length === 0 ? (
                             <p className="text-slate-500 text-sm">No upcoming scheduled sessions.</p>
                         ) : (
-                            <ul className="space-y-4">
-                                {upcomingSessions.map(session => (
-                                    <li key={session._id} className="border p-4 rounded-xl bg-slate-50 hover:bg-white hover:shadow-md transition-all">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <h4 className="font-bold text-slate-900">{session.candidate.name}</h4>
-                                            <span className="bg-brand-100 text-brand-800 text-xs px-2 py-1 rounded font-bold">ACCEPTED</span>
-                                        </div>
-                                        <div className="text-sm text-slate-600 mb-3 flex items-center">
-                                            <Clock size={14} className="mr-2" /> {new Date(session.startTime).toLocaleString()}
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="flex-1 bg-brand-600 text-white hover:bg-brand-700 border-none shadow-md"
-                                                onClick={() => {
-                                                    const finalLink = profileData.meetingLink || session.meetingLink;
-                                                    if (finalLink && !finalLink.includes('/ss-')) {
-                                                        const url = finalLink.startsWith('http') ? finalLink : `https://${finalLink}`;
-                                                        window.open(url, '_blank');
-                                                    } else if (profileData.meetingLink) {
-                                                        const url = profileData.meetingLink.startsWith('http') ? profileData.meetingLink : `https://${profileData.meetingLink}`;
-                                                        window.open(url, '_blank');
-                                                    }
-                                                }}
-                                                disabled={!session.meetingLink && !profileData.meetingLink}
-                                            >
-                                                <Video size={14} className="mr-2" /> Join Call
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="flex-1 border-brand-200 text-brand-700 hover:bg-brand-50"
-                                                onClick={() => handleStatusUpdate(session._id, 'completed')}
-                                            >
-                                                <CheckCircle2 size={14} className="mr-2 text-brand-600" /> Complete
-                                            </Button>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
+                            <div className="space-y-4">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search upcoming..."
+                                        className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                        value={upcomingSearch}
+                                        onChange={(e) => setUpcomingSearch(e.target.value)}
+                                    />
+                                </div>
+                                <ul className="space-y-4">
+                                    {upcomingSessions.filter(s => s.candidate.name.toLowerCase().includes(upcomingSearch.toLowerCase())).map(session => (
+                                        <li key={session._id} className="border p-4 rounded-xl bg-slate-50 hover:bg-white hover:shadow-md transition-all">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <h4 className="font-bold text-slate-900">{session.candidate.name}</h4>
+                                                <span className="bg-brand-100 text-brand-800 text-xs px-2 py-1 rounded font-bold">ACCEPTED</span>
+                                            </div>
+                                            <div className="text-sm text-slate-600 mb-3 flex items-center">
+                                                <Clock size={14} className="mr-2" /> {new Date(session.startTime).toLocaleString()}
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="flex-1 bg-brand-600 text-white hover:bg-brand-700 border-none shadow-md"
+                                                    onClick={() => {
+                                                        const finalLink = profileData.meetingLink || session.meetingLink;
+                                                        if (finalLink && !finalLink.includes('/ss-')) {
+                                                            const url = finalLink.startsWith('http') ? finalLink : `https://${finalLink}`;
+                                                            window.open(url, '_blank');
+                                                        } else if (profileData.meetingLink) {
+                                                            const url = profileData.meetingLink.startsWith('http') ? profileData.meetingLink : `https://${profileData.meetingLink}`;
+                                                            window.open(url, '_blank');
+                                                        }
+                                                    }}
+                                                    disabled={!session.meetingLink && !profileData.meetingLink}
+                                                >
+                                                    <Video size={14} className="mr-2" /> Join Call
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="flex-1 border-brand-200 text-brand-700 hover:bg-brand-50"
+                                                    onClick={() => handleStatusUpdate(session._id, 'completed')}
+                                                >
+                                                    <CheckCircle2 size={14} className="mr-2 text-brand-600" /> Complete
+                                                </Button>
+                                            </div>
+                                        </li>
+                                    ))}
+
+                                </ul>
+                            </div>
                         )}
                     </CardContent>
                 </Card>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

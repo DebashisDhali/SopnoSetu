@@ -1,7 +1,7 @@
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { MapPin, Users, BookOpen } from 'lucide-react';
+import { MapPin, Users, BookOpen, Search } from 'lucide-react';
 
 const universities = [
     {
@@ -49,44 +49,71 @@ const universities = [
 ];
 
 export default function UniversitiesPage() {
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const filteredUniversities = universities.filter(uni =>
+        uni.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        uni.location.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div className="min-h-screen bg-slate-50 py-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
+                <div className="text-center mb-12">
                     <h1 className="text-4xl font-bold text-slate-900 mb-4">Universities We Cover</h1>
                     <p className="text-lg text-slate-600 max-w-2xl mx-auto">
                         Find mentors from these top institutions to guide your path.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {universities.map((uni, index) => (
-                        <Card key={index} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 group">
-                            <div className="h-48 overflow-hidden relative">
-                                <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-colors z-10" />
-                                {/* Placeholder images used above, normally would use Next Image */}
-                                <img
-                                    src={uni.image}
-                                    alt={uni.name}
-                                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                                />
-                            </div>
-                            <CardContent className="p-6">
-                                <h3 className="text-xl font-bold text-slate-900 mb-2">{uni.name}</h3>
-                                <div className="flex items-center text-slate-500 text-sm mb-4">
-                                    <MapPin size={16} className="mr-1 text-green-600" /> {uni.location}
-                                </div>
-                                <p className="text-slate-600 text-sm mb-4 line-clamp-2">
-                                    {uni.description}
-                                </p>
-                                <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
-                                    <span className="flex items-center"><Users size={14} className="mr-1" /> {uni.studentCount} Students</span>
-                                    <span className="flex items-center"><BookOpen size={14} className="mr-1" /> Mentors Available</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                {/* Search Bar */}
+                <div className="max-w-xl mx-auto mb-16 relative">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="Search university by name or location..."
+                            className="w-full pl-10 pr-4 py-3 rounded-full border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm transition-shadow"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                 </div>
+
+                {filteredUniversities.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {filteredUniversities.map((uni, index) => (
+                            <Card key={index} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 group">
+                                <div className="h-48 overflow-hidden relative">
+                                    <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-colors z-10" />
+                                    {/* Placeholder images used above, normally would use Next Image */}
+                                    <img
+                                        src={uni.image}
+                                        alt={uni.name}
+                                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                                    />
+                                </div>
+                                <CardContent className="p-6">
+                                    <h3 className="text-xl font-bold text-slate-900 mb-2">{uni.name}</h3>
+                                    <div className="flex items-center text-slate-500 text-sm mb-4">
+                                        <MapPin size={16} className="mr-1 text-green-600" /> {uni.location}
+                                    </div>
+                                    <p className="text-slate-600 text-sm mb-4 line-clamp-2">
+                                        {uni.description}
+                                    </p>
+                                    <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
+                                        <span className="flex items-center"><Users size={14} className="mr-1" /> {uni.studentCount} Students</span>
+                                        <span className="flex items-center"><BookOpen size={14} className="mr-1" /> Mentors Available</span>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center text-slate-500 mt-8">
+                        No universities found matching your search.
+                    </div>
+                )}
             </div>
         </div>
     );

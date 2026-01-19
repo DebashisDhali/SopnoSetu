@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import api from '@/services/api';
-import { Calendar, Video, Clock, MessageCircle, Edit2, User as UserIcon, Save, Upload, Check, X, Star } from 'lucide-react';
+import { Calendar, Video, Clock, MessageCircle, Edit2, User as UserIcon, Save, Upload, Check, X, Star, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { FileUpload } from '@/components/ui/file-upload';
@@ -39,6 +39,7 @@ const CandidateDashboard = () => {
     const [selectedSession, setSelectedSession] = useState<Session | null>(null);
     const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
     const [submittingReview, setSubmittingReview] = useState(false);
+    const [sessionSearch, setSessionSearch] = useState('');
 
     const fetchSessions = async () => {
         try {
@@ -261,72 +262,84 @@ const CandidateDashboard = () => {
                             {loading ? (
                                 <p className="text-sm text-slate-400">Loading...</p>
                             ) : sessions.length > 0 ? (
-                                <ul className="space-y-4">
-                                    {sessions.map((session) => (
-                                        <li key={session._id} className="border border-slate-100 rounded-lg p-4 flex justify-between items-center hover:bg-slate-50 transition-colors">
-                                            <div>
-                                                <h4 className="font-bold text-slate-900">{session.mentor.name}</h4>
-                                                <div className="text-sm text-slate-500 flex items-center mt-1">
-                                                    <Clock size={14} className="mr-1" />
-                                                    {new Date(session.startTime).toLocaleString()}
+                                <div className="space-y-4">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search sessions..."
+                                            className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 mb-2"
+                                            value={sessionSearch}
+                                            onChange={(e) => setSessionSearch(e.target.value)}
+                                        />
+                                    </div>
+                                    <ul className="space-y-4">
+                                        {sessions.filter(s => s.mentor.name.toLowerCase().includes(sessionSearch.toLowerCase())).map((session) => (
+                                            <li key={session._id} className="border border-slate-100 rounded-lg p-4 flex justify-between items-center hover:bg-slate-50 transition-colors">
+                                                <div>
+                                                    <h4 className="font-bold text-slate-900">{session.mentor.name}</h4>
+                                                    <div className="text-sm text-slate-500 flex items-center mt-1">
+                                                        <Clock size={14} className="mr-1" />
+                                                        {new Date(session.startTime).toLocaleString()}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold mb-2 ${session.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                    session.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                                                        session.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                                                            'bg-slate-100 text-slate-800'
-                                                    }`}>
-                                                    {session.status.toUpperCase()}
-                                                </span>
-                                                <div className="flex gap-2 justify-end">
-                                                    {session.status === 'accepted' && (
-                                                        <>
-                                                            <Button size="sm" variant="outline" className="flex items-center text-xs h-8" onClick={() => router.push(`/dashboard?view=messages&with=${session.mentor._id}`)}>
-                                                                <MessageCircle size={12} className="mr-1" /> Chat
-                                                            </Button>
+                                                <div className="text-right">
+                                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold mb-2 ${session.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                        session.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                                                            session.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                                                'bg-slate-100 text-slate-800'
+                                                        }`}>
+                                                        {session.status.toUpperCase()}
+                                                    </span>
+                                                    <div className="flex gap-2 justify-end">
+                                                        {session.status === 'accepted' && (
+                                                            <>
+                                                                <Button size="sm" variant="outline" className="flex items-center text-xs h-8" onClick={() => router.push(`/dashboard?view=messages&with=${session.mentor._id}`)}>
+                                                                    <MessageCircle size={12} className="mr-1" /> Chat
+                                                                </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    className="flex items-center text-xs h-8 bg-brand-50 text-brand-700 border-brand-200 hover:bg-brand-100"
+                                                                    onClick={() => {
+                                                                        const finalLink = (session as any).mentorProfileLink || session.meetingLink;
+                                                                        if (finalLink && !finalLink.includes('/ss-')) {
+                                                                            const url = finalLink.startsWith('http') ? finalLink : `https://${finalLink}`;
+                                                                            window.open(url, '_blank');
+                                                                        } else {
+                                                                            toast.error("Mentor hasn't set a valid meeting link yet.");
+                                                                        }
+                                                                    }}
+                                                                    disabled={!session.meetingLink && !(session as any).mentorProfileLink}
+                                                                >
+                                                                    <Video size={12} className="mr-1" /> Join Call
+                                                                </Button>
+                                                            </>
+                                                        )}
+                                                        {session.status === 'completed' && (
                                                             <Button
                                                                 size="sm"
                                                                 variant="outline"
-                                                                className="flex items-center text-xs h-8 bg-brand-50 text-brand-700 border-brand-200 hover:bg-brand-100"
+                                                                className="flex items-center text-xs h-8 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100"
                                                                 onClick={() => {
-                                                                    const finalLink = (session as any).mentorProfileLink || session.meetingLink;
-                                                                    if (finalLink && !finalLink.includes('/ss-')) {
-                                                                        const url = finalLink.startsWith('http') ? finalLink : `https://${finalLink}`;
-                                                                        window.open(url, '_blank');
-                                                                    } else {
-                                                                        toast.error("Mentor hasn't set a valid meeting link yet.");
-                                                                    }
+                                                                    setSelectedSession(session);
+                                                                    setShowReviewModal(true);
                                                                 }}
-                                                                disabled={!session.meetingLink && !(session as any).mentorProfileLink}
                                                             >
-                                                                <Video size={12} className="mr-1" /> Join Call
+                                                                <Star size={12} className="mr-1" /> Rate Experience
                                                             </Button>
-                                                        </>
-                                                    )}
-                                                    {session.status === 'completed' && (
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            className="flex items-center text-xs h-8 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100"
-                                                            onClick={() => {
-                                                                setSelectedSession(session);
-                                                                setShowReviewModal(true);
-                                                            }}
-                                                        >
-                                                            <Star size={12} className="mr-1" /> Rate Experience
-                                                        </Button>
-                                                    )}
-                                                    {session.status === 'pending' && (
-                                                        <Button size="sm" variant="ghost" className="text-xs h-8 text-brand-600" onClick={() => router.push(`/dashboard?view=messages&with=${session.mentor._id}`)}>
-                                                            <MessageCircle size={12} className="mr-1" /> Message
-                                                        </Button>
-                                                    )}
+                                                        )}
+                                                        {session.status === 'pending' && (
+                                                            <Button size="sm" variant="ghost" className="text-xs h-8 text-brand-600" onClick={() => router.push(`/dashboard?view=messages&with=${session.mentor._id}`)}>
+                                                                <MessageCircle size={12} className="mr-1" /> Message
+                                                            </Button>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ul>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
                             ) : (
                                 <div className="text-center py-8">
                                     <p className="text-slate-500 text-sm mb-4">No upcoming sessions.</p>
